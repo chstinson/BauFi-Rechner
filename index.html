@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BauFi-Rechner | Baufinanzierungsrechner mit KI-Plausibilisierung</title>
+    <title>Baufinanzierungsrechner mit KI-Plausibilisierung</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles/main.css">
     <!-- Font Awesome für Icons -->
@@ -80,310 +80,6 @@
                         <span class="font-medium">DeepSeek</span>
                     </div>
                     <p class="text-sm text-gray-600">DeepSeek's KI bewertet Ihre Immobilienfinanzierung und vergleicht Marktdaten.</p>
-                </div>
-            </div>
-            
-            <!-- Finanzierung Tab -->
-            <div id="financing" class="tab-content hidden">
-                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <h2 class="text-xl font-semibold mb-4">Finanzierungsstruktur</h2>
-                    
-                    <!-- Gesamtkosten Übersicht -->
-                    <fieldset class="mb-4 p-4 border rounded">
-                        <legend class="font-medium px-2">Gesamtkosten</legend>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Kaufpreis</label>
-                                <div class="p-2 border rounded bg-gray-100" id="fs_kaufpreis">-</div>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Kaufnebenkosten</label>
-                                <div class="p-2 border rounded bg-gray-100" id="fs_kaufnebenkosten">-</div>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Zusätzliche Kosten</label>
-                                <div class="p-2 border rounded bg-gray-100" id="fs_zusatzkosten">-</div>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Gesamtkosten</label>
-                                <div class="p-2 border rounded bg-gray-100 font-semibold" id="fs_gesamtkosten">-</div>
-                            </div>
-                        </div>
-                    </fieldset>
-                    
-                    <!-- Eigenkapital Eingabe -->
-                    <fieldset class="mb-4 p-4 border rounded">
-                        <legend class="font-medium px-2">Eigenkapital</legend>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Eigenkapital</label>
-                                <div class="flex items-center">
-                                    <input type="number" id="eigenkapital" class="w-full p-2 border rounded" placeholder="100000">
-                                    <span class="ml-2">€</span>
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Eigenkapitalquote</label>
-                                <div class="p-2 border rounded bg-gray-100" id="eigenkapital_quote">-</div>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Fördermittel (KfW, etc.)</label>
-                                <div class="flex items-center">
-                                    <input type="number" id="foerdermittel" class="w-full p-2 border rounded" placeholder="0">
-                                    <span class="ml-2">€</span>
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Zu finanzierender Betrag</label>
-                                <div class="p-2 border rounded bg-gray-100 font-semibold" id="zu_finanzieren">-</div>
-                            </div>
-                        </div>
-                    </fieldset>
-                    
-                    <!-- Multi-Darlehen-System -->
-                    <div class="mb-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <h3 class="font-medium">Finanzierungsbausteine</h3>
-                            <button id="add-darlehen" class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition">
-                                <i class="fas fa-plus mr-1"></i>Darlehen hinzufügen
-                            </button>
-                        </div>
-                        
-                        <div id="darlehen-container">
-                            <!-- Hier werden die Darlehen eingefügt -->
-                            <div id="darlehen-1" class="p-4 border rounded mb-4 darlehen-block">
-                                <div class="flex justify-between items-center mb-2">
-                                    <h4 class="font-medium">Darlehen 1</h4>
-                                    <span class="darlehen-remove hidden cursor-pointer text-red-500 hover:text-red-700">
-                                        <i class="fas fa-times-circle"></i>
-                                    </span>
-                                </div>
-                                
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Darlehensbetrag</label>
-                                        <div class="flex items-center">
-                                            <input type="range" min="10000" max="1000000" step="10000" value="300000" 
-                                                class="w-full mr-4 darlehen-betrag-slider">
-                                            <input type="number" class="w-32 p-2 border rounded text-right darlehen-betrag" value="300000">
-                                            <span class="ml-2">€</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Sollzins</label>
-                                        <div class="flex items-center">
-                                            <input type="range" min="0.5" max="6" step="0.1" value="3.5" 
-                                                class="w-full mr-4 darlehen-zins-slider">
-                                            <input type="number" min="0.5" max="10" step="0.1" value="3.5" 
-                                                class="w-24 p-2 border rounded text-right darlehen-zins">
-                                            <span class="ml-2">%</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Anfängliche Tilgung</label>
-                                        <div class="flex items-center">
-                                            <input type="range" min="1" max="5" step="0.1" value="2.0" 
-                                                class="w-full mr-4 darlehen-tilgung-slider">
-                                            <input type="number" min="0.5" max="10" step="0.1" value="2.0" 
-                                                class="w-24 p-2 border rounded text-right darlehen-tilgung">
-                                            <span class="ml-2">%</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Zinsbindung</label>
-                                        <div class="flex items-center">
-                                            <input type="range" min="5" max="30" step="1" value="10" 
-                                                class="w-full mr-4 darlehen-zinsbindung-slider">
-                                            <input type="number" min="1" max="30" step="1" value="10" 
-                                                class="w-24 p-2 border rounded text-right darlehen-zinsbindung">
-                                            <span class="ml-2">Jahre</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Monatliche Rate</label>
-                                        <div class="p-2 border rounded bg-gray-100 darlehen-rate">-</div>
-                                    </div>
-                                    
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Restschuld nach Zinsbindung</label>
-                                        <div class="p-2 border rounded bg-gray-100 darlehen-restschuld">-</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="mt-2">
-                                    <label class="inline-flex items-center">
-                                        <input type="checkbox" class="darlehen-sondertilgung-option">
-                                        <span class="ml-2 text-sm">Sondertilgung möglich</span>
-                                    </label>
-                                    <div class="mt-2 darlehen-sondertilgung-details hidden">
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                            <div>
-                                                <label class="block text-sm font-medium mb-1">Höhe der Sondertilgung</label>
-                                                <div class="flex items-center">
-                                                    <input type="number" class="w-full p-2 border rounded darlehen-sondertilgung-betrag" value="10000">
-                                                    <span class="ml-2">€</span>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label class="block text-sm font-medium mb-1">Rhythmus</label>
-                                                <select class="w-full p-2 border rounded darlehen-sondertilgung-rhythmus">
-                                                    <option value="jaehrlich">Jährlich</option>
-                                                    <option value="monatlich">Monatlich</option>
-                                                    <option value="einmalig">Einmalig</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Zusammenfassung der Finanzierung -->
-                    <div class="p-4 border rounded mb-4 bg-blue-50">
-                        <h3 class="font-medium mb-3 text-blue-800">Zusammenfassung</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="p-3 bg-white rounded border">
-                                <div class="text-sm text-gray-500">Darlehenssumme gesamt</div>
-                                <div id="darlehen_summe" class="text-xl font-bold">-</div>
-                            </div>
-                            
-                            <div class="p-3 bg-white rounded border">
-                                <div class="text-sm text-gray-500">Monatliche Rate gesamt</div>
-                                <div id="rate_summe" class="text-xl font-bold">-</div>
-                            </div>
-                            
-                            <div class="p-3 bg-white rounded border">
-                                <div class="text-sm text-gray-500">Beleihungsauslauf (LTV)</div>
-                                <div id="beleihungsauslauf" class="text-xl font-bold">-</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4 flex justify-between">
-                        <button id="to-costs-tab-back" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition">
-                            <i class="fas fa-arrow-left mr-2"></i>Zurück zu Kosten
-                        </button>
-                        <button id="to-analysis-tab" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-                            Weiter zur Analyse<i class="fas fa-arrow-right ml-2"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Analyse Tab -->
-            <div id="analysis" class="tab-content hidden">
-                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <h2 class="text-xl font-semibold mb-4">Analyse & Optimierung</h2>
-                    
-                    <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded">
-                        <p class="text-sm text-blue-800">
-                            In diesem Bereich können Sie Ihre Immobilienfinanzierung anhand aktueller Marktdaten analysieren lassen und erhalten Optimierungsvorschläge durch KI-Unterstützung.
-                        </p>
-                    </div>
-                    
-                    <!-- KI-Status prüfen -->
-                    <div id="ki-check-container" class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
-                        <p class="text-sm text-yellow-800">
-                            <i class="fas fa-exclamation-triangle mr-2"></i> Um die Analyse- und Optimierungsfunktionen nutzen zu können, wird ein gültiger API-Schlüssel benötigt.
-                        </p>
-                        <button id="goto-api-key" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-                            API-Schlüssel eingeben
-                        </button>
-                    </div>
-                    
-                    <!-- Analyse-Optionen -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" id="analyse-optionen">
-                        <div class="border rounded p-4 hover:shadow-md transition cursor-pointer" id="marktdaten-analyse">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-chart-line mr-2 text-green-500"></i>
-                                <span class="font-medium">Marktdatenanalyse</span>
-                            </div>
-                            <p class="text-sm text-gray-600">Vergleichen Sie Ihre Immobilie und Finanzierungskonditionen mit aktuellen Marktdaten.</p>
-                        </div>
-                        
-                        <div class="border rounded p-4 hover:shadow-md transition cursor-pointer" id="belastungs-analyse">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-balance-scale mr-2 text-blue-500"></i>
-                                <span class="font-medium">Belastbarkeitsanalyse</span>
-                            </div>
-                            <p class="text-sm text-gray-600">Überprüfen Sie, ob die monatliche Belastung zu Ihrem Einkommen passt.</p>
-                        </div>
-                        
-                        <div class="border rounded p-4 hover:shadow-md transition cursor-pointer" id="optimierungs-analyse">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-magic mr-2 text-purple-500"></i>
-                                <span class="font-medium">Optimierungsvorschläge</span>
-                            </div>
-                            <p class="text-sm text-gray-600">Erhalten Sie KI-gestützte Vorschläge zur Optimierung Ihrer Finanzierung.</p>
-                        </div>
-                        
-                        <div class="border rounded p-4 hover:shadow-md transition cursor-pointer" id="vollstaendige-analyse">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-search mr-2 text-red-500"></i>
-                                <span class="font-medium">Vollständige Analyse</span>
-                            </div>
-                            <p class="text-sm text-gray-600">Führen Sie eine umfassende Analyse und Plausibilitätsprüfung durch.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Analyse-Container (initial versteckt) -->
-                    <div id="analyse-ergebnis-container" class="hidden">
-                        <h3 class="text-lg font-semibold mb-3" id="analyse-titel">Analyseergebnis</h3>
-                        <div id="analyse-inhalt" class="mb-4 p-4 border rounded">
-                            <!-- Hier werden die Analyseergebnisse eingefügt -->
-                        </div>
-                        
-                        <button id="neue-analyse" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-                            <i class="fas fa-redo mr-2"></i>Neue Analyse
-                        </button>
-                    </div>
-                    
-                    <!-- Tilgungsplan Button -->
-                    <div class="mt-6">
-                        <button id="showTilgungsplanAnalyse" class="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-                            <i class="fas fa-table mr-2"></i>Tilgungsplan anzeigen
-                        </button>
-                    </div>
-                    
-                    <!-- Tilgungsplan Container -->
-                    <div id="tilgungsplanContainerAnalyse" class="mt-6 hidden">
-                        <h3 class="text-lg font-semibold mb-3">Tilgungsplan</h3>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full bg-white border">
-                                <thead>
-                                    <tr class="bg-gray-100">
-                                        <th class="py-2 px-4 border text-left">Jahr</th>
-                                        <th class="py-2 px-4 border text-right">Restschuld</th>
-                                        <th class="py-2 px-4 border text-right">Gezahlte Zinsen</th>
-                                        <th class="py-2 px-4 border text-right">Gezahlte Tilgung</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tilgungsplanBodyAnalyse">
-                                    <!-- Wird durch JavaScript gefüllt -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4 flex justify-between">
-                        <button id="to-financing-tab-back" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition">
-                            <i class="fas fa-arrow-left mr-2"></i>Zurück zu Finanzierung
-                        </button>
-                        <button id="reset-calculator" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
-                            <i class="fas fa-trash mr-2"></i>Rechner zurücksetzen
-                        </button>
-                    </div>
                 </div>
             </div>
             
@@ -796,3 +492,324 @@
                             Weiter zu Finanzierung<i class="fas fa-arrow-right ml-2"></i>
                         </button>
                     </div>
+                </div>
+            </div>
+            
+            <!-- Finanzierung Tab -->
+            <div id="financing" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4">Finanzierungsstruktur</h2>
+                    
+                    <!-- Gesamtkosten Übersicht -->
+                    <fieldset class="mb-4 p-4 border rounded">
+                        <legend class="font-medium px-2">Gesamtkosten</legend>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Kaufpreis</label>
+                                <div class="p-2 border rounded bg-gray-100" id="fs_kaufpreis">-</div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Kaufnebenkosten</label>
+                                <div class="p-2 border rounded bg-gray-100" id="fs_kaufnebenkosten">-</div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Zusätzliche Kosten</label>
+                                <div class="p-2 border rounded bg-gray-100" id="fs_zusatzkosten">-</div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Gesamtkosten</label>
+                                <div class="p-2 border rounded bg-gray-100 font-semibold" id="fs_gesamtkosten">-</div>
+                            </div>
+                        </div>
+                    </fieldset>
+                    
+                    <!-- Eigenkapital Eingabe -->
+                    <fieldset class="mb-4 p-4 border rounded">
+                        <legend class="font-medium px-2">Eigenkapital</legend>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Eigenkapital</label>
+                                <div class="flex items-center">
+                                    <input type="number" id="eigenkapital" class="w-full p-2 border rounded" placeholder="100000">
+                                    <span class="ml-2">€</span>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Eigenkapitalquote</label>
+                                <div class="p-2 border rounded bg-gray-100" id="eigenkapital_quote">-</div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Fördermittel (KfW, etc.)</label>
+                                <div class="flex items-center">
+                                    <input type="number" id="foerdermittel" class="w-full p-2 border rounded" placeholder="0">
+                                    <span class="ml-2">€</span>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Zu finanzierender Betrag</label>
+                                <div class="p-2 border rounded bg-gray-100 font-semibold" id="zu_finanzieren">-</div>
+                            </div>
+                        </div>
+                    </fieldset>
+                    
+                    <!-- Multi-Darlehen-System -->
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-medium">Finanzierungsbausteine</h3>
+                            <button id="add-darlehen" class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition">
+                                <i class="fas fa-plus mr-1"></i>Darlehen hinzufügen
+                            </button>
+                        </div>
+                        
+                        <div id="darlehen-container">
+                            <!-- Hier werden die Darlehen eingefügt -->
+                            <div id="darlehen-1" class="p-4 border rounded mb-4 darlehen-block">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h4 class="font-medium">Darlehen 1</h4>
+                                    <span class="darlehen-remove hidden cursor-pointer text-red-500 hover:text-red-700">
+                                        <i class="fas fa-times-circle"></i>
+                                    </span>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Darlehensbetrag</label>
+                                        <div class="flex items-center">
+                                            <input type="range" min="10000" max="1000000" step="10000" value="300000" 
+                                                class="w-full mr-4 darlehen-betrag-slider">
+                                            <input type="number" class="w-32 p-2 border rounded text-right darlehen-betrag" value="300000">
+                                            <span class="ml-2">€</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Sollzins</label>
+                                        <div class="flex items-center">
+                                            <input type="range" min="0.5" max="6" step="0.1" value="3.5" 
+                                                class="w-full mr-4 darlehen-zins-slider">
+                                            <input type="number" min="0.5" max="10" step="0.1" value="3.5" 
+                                                class="w-24 p-2 border rounded text-right darlehen-zins">
+                                            <span class="ml-2">%</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Anfängliche Tilgung</label>
+                                        <div class="flex items-center">
+                                            <input type="range" min="1" max="5" step="0.1" value="2.0" 
+                                                class="w-full mr-4 darlehen-tilgung-slider">
+                                            <input type="number" min="0.5" max="10" step="0.1" value="2.0" 
+                                                class="w-24 p-2 border rounded text-right darlehen-tilgung">
+                                            <span class="ml-2">%</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Zinsbindung</label>
+                                        <div class="flex items-center">
+                                            <input type="range" min="5" max="30" step="1" value="10" 
+                                                class="w-full mr-4 darlehen-zinsbindung-slider">
+                                            <input type="number" min="1" max="30" step="1" value="10" 
+                                                class="w-24 p-2 border rounded text-right darlehen-zinsbindung">
+                                            <span class="ml-2">Jahre</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Monatliche Rate</label>
+                                        <div class="p-2 border rounded bg-gray-100 darlehen-rate">-</div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Restschuld nach Zinsbindung</label>
+                                        <div class="p-2 border rounded bg-gray-100 darlehen-restschuld">-</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-2">
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" class="darlehen-sondertilgung-option">
+                                        <span class="ml-2 text-sm">Sondertilgung möglich</span>
+                                    </label>
+                                    <div class="mt-2 darlehen-sondertilgung-details hidden">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="block text-sm font-medium mb-1">Höhe der Sondertilgung</label>
+                                                <div class="flex items-center">
+                                                    <input type="number" class="w-full p-2 border rounded darlehen-sondertilgung-betrag" value="10000">
+                                                    <span class="ml-2">€</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium mb-1">Rhythmus</label>
+                                                <select class="w-full p-2 border rounded darlehen-sondertilgung-rhythmus">
+                                                    <option value="jaehrlich">Jährlich</option>
+                                                    <option value="monatlich">Monatlich</option>
+                                                    <option value="einmalig">Einmalig</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Zusammenfassung der Finanzierung -->
+                    <div class="p-4 border rounded mb-4 bg-blue-50">
+                        <h3 class="font-medium mb-3 text-blue-800">Zusammenfassung</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="p-3 bg-white rounded border">
+                                <div class="text-sm text-gray-500">Darlehenssumme gesamt</div>
+                                <div id="darlehen_summe" class="text-xl font-bold">-</div>
+                            </div>
+                            
+                            <div class="p-3 bg-white rounded border">
+                                <div class="text-sm text-gray-500">Monatliche Rate gesamt</div>
+                                <div id="rate_summe" class="text-xl font-bold">-</div>
+                            </div>
+                            
+                            <div class="p-3 bg-white rounded border">
+                                <div class="text-sm text-gray-500">Beleihungsauslauf (LTV)</div>
+                                <div id="beleihungsauslauf" class="text-xl font-bold">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 flex justify-between">
+                        <button id="to-costs-tab-back" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition">
+                            <i class="fas fa-arrow-left mr-2"></i>Zurück zu Kosten
+                        </button>
+                        <button id="to-analysis-tab" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                            Weiter zur Analyse<i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Analyse Tab -->
+            <div id="analysis" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4">Analyse & Optimierung</h2>
+                    
+                    <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded">
+                        <p class="text-sm text-blue-800">
+                            In diesem Bereich können Sie Ihre Immobilienfinanzierung anhand aktueller Marktdaten analysieren lassen und erhalten Optimierungsvorschläge durch KI-Unterstützung.
+                        </p>
+                    </div>
+                    
+                    <!-- KI-Status prüfen -->
+                    <div id="ki-check-container" class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
+                        <p class="text-sm text-yellow-800">
+                            <i class="fas fa-exclamation-triangle mr-2"></i> Um die Analyse- und Optimierungsfunktionen nutzen zu können, wird ein gültiger API-Schlüssel benötigt.
+                        </p>
+                        <button id="goto-api-key" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                            API-Schlüssel eingeben
+                        </button>
+                    </div>
+                    
+                    <!-- Analyse-Optionen -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" id="analyse-optionen">
+                        <div class="border rounded p-4 hover:shadow-md transition cursor-pointer" id="marktdaten-analyse">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-chart-line mr-2 text-green-500"></i>
+                                <span class="font-medium">Marktdatenanalyse</span>
+                            </div>
+                            <p class="text-sm text-gray-600">Vergleichen Sie Ihre Immobilie und Finanzierungskonditionen mit aktuellen Marktdaten.</p>
+                        </div>
+                        
+                        <div class="border rounded p-4 hover:shadow-md transition cursor-pointer" id="belastungs-analyse">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-balance-scale mr-2 text-blue-500"></i>
+                                <span class="font-medium">Belastbarkeitsanalyse</span>
+                            </div>
+                            <p class="text-sm text-gray-600">Überprüfen Sie, ob die monatliche Belastung zu Ihrem Einkommen passt.</p>
+                        </div>
+                        
+                        <div class="border rounded p-4 hover:shadow-md transition cursor-pointer" id="optimierungs-analyse">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-magic mr-2 text-purple-500"></i>
+                                <span class="font-medium">Optimierungsvorschläge</span>
+                            </div>
+                            <p class="text-sm text-gray-600">Erhalten Sie KI-gestützte Vorschläge zur Optimierung Ihrer Finanzierung.</p>
+                        </div>
+                        
+                        <div class="border rounded p-4 hover:shadow-md transition cursor-pointer" id="vollstaendige-analyse">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-search mr-2 text-red-500"></i>
+                                <span class="font-medium">Vollständige Analyse</span>
+                            </div>
+                            <p class="text-sm text-gray-600">Führen Sie eine umfassende Analyse und Plausibilitätsprüfung durch.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Analyse-Container (initial versteckt) -->
+                    <div id="analyse-ergebnis-container" class="hidden">
+                        <h3 class="text-lg font-semibold mb-3" id="analyse-titel">Analyseergebnis</h3>
+                        <div id="analyse-inhalt" class="mb-4 p-4 border rounded">
+                            <!-- Hier werden die Analyseergebnisse eingefügt -->
+                        </div>
+                        
+                        <button id="neue-analyse" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                            <i class="fas fa-redo mr-2"></i>Neue Analyse
+                        </button>
+                    </div>
+                    
+                    <!-- Tilgungsplan Button -->
+                    <div class="mt-6">
+                        <button id="showTilgungsplanAnalyse" class="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                            <i class="fas fa-table mr-2"></i>Tilgungsplan anzeigen
+                        </button>
+                    </div>
+                    
+                    <!-- Tilgungsplan Container -->
+                    <div id="tilgungsplanContainerAnalyse" class="mt-6 hidden">
+                        <h3 class="text-lg font-semibold mb-3">Tilgungsplan</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white border">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="py-2 px-4 border text-left">Jahr</th>
+                                        <th class="py-2 px-4 border text-right">Restschuld</th>
+                                        <th class="py-2 px-4 border text-right">Gezahlte Zinsen</th>
+                                        <th class="py-2 px-4 border text-right">Gezahlte Tilgung</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tilgungsplanBodyAnalyse">
+                                    <!-- Wird durch JavaScript gefüllt -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 flex justify-between">
+                        <button id="to-financing-tab-back" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition">
+                            <i class="fas fa-arrow-left mr-2"></i>Zurück zu Finanzierung
+                        </button>
+                        <button id="reset-calculator" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+                            <i class="fas fa-trash mr-2"></i>Rechner zurücksetzen
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-6 text-sm text-gray-500 text-center">
+            <p>Baufinanzierungsrechner © 2025 | <a href="https://github.com/chstinson/BauFi-Rechner" class="text-blue-500 hover:underline">GitHub</a></p>
+        </div>
+    </div>
+
+    <!-- JavaScript-Dateien in richtiger Reihenfolge -->
+    <script src="js/object.js"></script>
+    <script src="js/costs.js"></script>
+    <script src="js/financing.js"></script>
+    <script src="js/analysis.js"></script> <!-- Zuerst analysis.js laden -->
+    <script src="js/main.js"></script>     <!-- Dann main.js laden -->
+</body>
+</html>
