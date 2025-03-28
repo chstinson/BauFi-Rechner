@@ -147,3 +147,10 @@ function updateGesamtkosten() {
     
     // Ausgabe
     document.getElementById('gesamtkosten_kaufpreis').textContent = formatCurrency(kaufpreis);
+    document.getElementById('gesamtkosten_nebenkosten').textContent = formatCurrency(nebenkostenGesamt);
+    document.getElementById('gesamtkosten_zusatzkosten').textContent = formatCurrency(zusatzkosten);
+    document.getElementById('gesamtkosten_gesamt').textContent = formatCurrency(gesamtkosten);
+    
+    // Auch Finanzierungsstruktur aktualisieren, wenn vorhanden
+    updateFinanzierungsstruktur();
+}
