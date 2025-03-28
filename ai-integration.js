@@ -1,23 +1,31 @@
-// api-integration.js - neue zusammengeführte Datei
+// api-integration.js
+// Zentrale API-Integration für alle Komponenten des BauFi-Rechners
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Prüfen, ob bereits ein API-Container existiert, um Duplizierung zu vermeiden
-    if (document.getElementById('api-global-container')) return;
-    
     // Container für globale API-Integration erstellen
+    initApiIntegration();
+});
+
+// API-Integration initialisieren
+function initApiIntegration() {
+    // Container erstellen
     const mainContainer = document.querySelector('.container.mx-auto.p-4');
     if (!mainContainer) return;
     
-    // Container am Ende der Seite einfügen, bevor der Footer kommt
-    const footer = document.querySelector('.mt-6.text-sm.text-gray-500.text-center');
+    // Container am Anfang der Seite einfügen, nach dem Hauptrechner
+    const rechnerContainer = document.querySelector('.bg-white.rounded-lg.shadow-md.p-6');
     
     const apiContainer = document.createElement('div');
     apiContainer.id = 'api-global-container';
-    apiContainer.className = 'bg-white rounded-lg shadow-md p-6 mb-6';
+    apiContainer.className = 'bg-white rounded-lg shadow-md p-6 mt-8';
     apiContainer.innerHTML = createApiIntegrationHTML();
     
-    if (footer) {
-        mainContainer.insertBefore(apiContainer, footer);
+    if (rechnerContainer && rechnerContainer.nextSibling) {
+        mainContainer.insertBefore(apiContainer, rechnerContainer.nextSibling);
+    } else if (rechnerContainer) {
+        mainContainer.insertBefore(apiContainer, mainContainer.lastChild);
     } else {
+        // Fallback: Container am Ende einfügen
         mainContainer.appendChild(apiContainer);
     }
     
@@ -31,7 +39,10 @@ document.addEventListener('DOMContentLoaded', function() {
             container.remove();
         }
     });
-});
+    
+    // Sicherstellen, dass der Container sichtbar ist
+    apiContainer.style.display = 'block';
+}
 
 // HTML für die globale API-Integration
 function createApiIntegrationHTML() {
@@ -417,3 +428,6 @@ function sammleFinanzierungsdaten() {
 function formatCurrency(value) {
     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
 }
+
+// Beim ersten Laden sofort initialisieren
+initApiIntegration();
