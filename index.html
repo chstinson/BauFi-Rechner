@@ -9,143 +9,10 @@
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto p-4 max-w-6xl">
-        <h1 class="text-3xl font-bold text-center my-6">Baufinanzierungsrechner mit KI-Plausibilisierung</h1>
+        <h1 class="text-3xl font-bold text-center my-6">Baufinanzierungsrechner mit Marktdaten-Plausibilisierung</h1>
         
         <div class="bg-white rounded-lg shadow-md p-6">
-            <!-- Standortdaten -->
-            <div class="mb-6">
-                <h2 class="text-xl font-semibold mb-4">Standortdaten</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-1">PLZ</label>
-                        <input type="text" id="plz" class="w-full p-2 border rounded" placeholder="Postleitzahl">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Ort</label>
-                        <input type="text" id="ort" class="w-full p-2 border rounded" placeholder="Ort">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Objekttyp</label>
-                        <select id="objekttyp" class="w-full p-2 border rounded">
-                            <option value="Einfamilienhaus">Einfamilienhaus</option>
-                            <option value="Eigentumswohnung">Eigentumswohnung</option>
-                            <option value="Mehrfamilienhaus">Mehrfamilienhaus</option>
-                            <option value="Grundstück">Grundstück</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Wohnfläche in m²</label>
-                        <input type="number" id="wohnflaeche" class="w-full p-2 border rounded" value="120">
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Darlehensdaten -->
-            <div class="mb-6">
-                <h2 class="text-xl font-semibold mb-4">Darlehensdaten</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Darlehensbetrag</label>
-                        <div class="flex items-center">
-                            <input type="range" id="darlehensbetrag" min="50000" max="1000000" step="10000" value="300000" class="w-full mr-4">
-                            <span id="darlehensbetragsValue" class="w-32 text-right"></span>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Sollzins</label>
-                        <div class="flex items-center">
-                            <input type="range" id="zinssatz" min="0.5" max="6" step="0.1" value="3.5" class="w-full mr-4">
-                            <span id="zinssatzValue" class="w-16 text-right"></span>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Anfängliche Tilgung</label>
-                        <div class="flex items-center">
-                            <input type="range" id="tilgungssatz" min="1" max="5" step="0.1" value="2.0" class="w-full mr-4">
-                            <span id="tilgungssatzValue" class="w-16 text-right"></span>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Laufzeit (optional)</label>
-                        <div class="flex items-center">
-                            <input type="range" id="laufzeit" min="0" max="40" step="1" value="0" class="w-full mr-4">
-                            <span id="laufzeitValue" class="w-24 text-right"></span>
-                        </div>
-                        <p class="text-xs text-gray-500">0 = automatische Berechnung</p>
-                    </div>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">Sondertilgung</label>
-                    <div class="flex items-center">
-                        <input type="range" id="sondertilgung" min="0" max="50000" step="1000" value="0" class="w-full mr-4">
-                        <span id="sondertilgungValue" class="w-24 text-right"></span>
-                    </div>
-                    <div class="mt-2">
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" id="sondertilgungJaehrlich" checked>
-                            <span class="ml-2 text-sm">Jährliche Zahlung</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Ergebnisse -->
-            <div class="bg-gray-100 p-4 rounded-lg mb-6">
-                <h2 class="text-xl font-semibold mb-4">Ergebnisse</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="p-3 bg-white rounded border">
-                        <div class="text-sm text-gray-500">Monatliche Rate</div>
-                        <div id="monatlicheRate" class="text-2xl font-bold"></div>
-                    </div>
-                    
-                    <div class="p-3 bg-white rounded border">
-                        <div class="text-sm text-gray-500">Laufzeit</div>
-                        <div id="berechneteJahre" class="text-2xl font-bold"></div>
-                    </div>
-                    
-                    <div class="p-3 bg-white rounded border">
-                        <div class="text-sm text-gray-500">Gesamtkosten</div>
-                        <div id="gesamtkosten" class="text-2xl font-bold"></div>
-                        <div id="gesamtzinsen" class="text-sm text-gray-500"></div>
-                    </div>
-                    
-                    <div class="p-3 bg-white rounded border">
-                        <div class="text-sm text-gray-500">Restschuld</div>
-                        <div id="restschuld" class="text-2xl font-bold"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Tilgungsplan Button -->
-            <button id="showTilgungsplan" class="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-                Tilgungsplan anzeigen
-            </button>
-            
-            <!-- Tilgungsplan Container -->
-            <div id="tilgungsplanContainer" class="mt-6 hidden">
-                <h2 class="text-xl font-semibold mb-4">Tilgungsplan</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white border">
-                        <thead>
-                            <tr class="bg-gray-100">
-                                <th class="py-2 px-4 border text-left">Jahr</th>
-                                <th class="py-2 px-4 border text-right">Restschuld</th>
-                                <th class="py-2 px-4 border text-right">Gezahlte Zinsen</th>
-                                <th class="py-2 px-4 border text-right">Gezahlte Tilgung</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tilgungsplanBody">
-                            <!-- Wird durch JavaScript gefüllt -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <!-- Der eigentliche Rechner wird hier durch die JavaScript-Dateien dynamisch generiert -->
         </div>
         
         <div class="mt-6 text-sm text-gray-500 text-center">
@@ -153,7 +20,13 @@
         </div>
     </div>
 
+    <!-- Basis-Skript des Rechners -->
     <script src="script.js"></script>
+    
+    <!-- Erweiterte Funktionalitäten -->
+    <script src="detaillierte-objektdaten.js"></script>
+    <script src="finanzierungsstruktur.js"></script>
+    <script src="marktdaten-plausibilisierung.js"></script>
     <script src="ai-plausibility.js"></script>
 </body>
 </html>
