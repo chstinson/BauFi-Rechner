@@ -1,6 +1,4 @@
-/* Zusätzliches Styling für den Baufinanzierungsrechner */
-
-/* Verbesserung der Slider */
+/* Verbesserte Slider */
 input[type="range"] {
     -webkit-appearance: none;
     height: 8px;
@@ -27,50 +25,12 @@ input[type="range"]::-moz-range-thumb {
     border: none;
 }
 
-/* Responsive Design Anpassungen */
-@media (max-width: 768px) {
-    .container {
-        padding: 1rem;
-    }
-    
-    h1 {
-        font-size: 1.5rem;
-    }
-    
-    .p-6 {
-        padding: 1rem;
-    }
+/* Verbesserte Ergebnisdarstellung */
+.text-2xl.font-bold {
+    color: #1e40af;
 }
 
-/* Animationen für besseres Nutzererlebnis */
-button {
-    transition: all 0.2s ease;
-}
-
-button:hover {
-    transform: translateY(-1px);
-}
-
-button:active {
-    transform: translateY(1px);
-}
-
-/* Tabellen-Styling für den Tilgungsplan */
-table {
-    border-collapse: collapse;
-    width: 100%;
-}
-
-th {
-    background-color: #f3f4f6;
-    font-weight: 600;
-}
-
-tr:nth-child(even) {
-    background-color: #f9fafb;
-}
-
-/* Tooltip Styling */
+/* Tooltips für bessere Benutzerführung */
 [data-tooltip] {
     position: relative;
     cursor: help;
@@ -89,4 +49,84 @@ tr:nth-child(even) {
     font-size: 0.75rem;
     white-space: nowrap;
     z-index: 10;
+}
+
+/* Animation für Buttons */
+button {
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .container {
+        padding: 0.5rem;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    .p-6 {
+        padding: 1rem;
+    }
+    
+    .text-2xl {
+        font-size: 1.25rem;
+    }
+}
+
+/* Erweiterung für detaillierte Objektdaten */
+.detailed-object-data {
+    transition: all 0.3s ease;
+}
+
+/* Stilisierung der Plausibilisierungsergebnisse */
+.bewertung-positiv {
+    color: #047857;
+    border-color: #047857;
+    background-color: #ecfdf5;
+}
+
+.bewertung-neutral {
+    color: #1e40af;
+    border-color: #1e40af;
+    background-color: #eff6ff;
+}
+
+.bewertung-warnung {
+    color: #b45309;
+    border-color: #b45309;
+    background-color: #fffbeb;
+}
+
+.bewertung-negativ {
+    color: #b91c1c;
+    border-color: #b91c1c;
+    background-color: #fee2e2;
+}
+
+/* Verbesserungen für die Multi-Darlehen-Darstellung */
+.darlehen-block {
+    transition: background-color 0.2s ease;
+}
+
+.darlehen-block:hover {
+    background-color: #f9fafb;
+}
+
+.darlehen-remove {
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.darlehen-remove:hover {
+    opacity: 1;
 }
