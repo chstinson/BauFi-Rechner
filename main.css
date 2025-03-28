@@ -1,0 +1,149 @@
+/* main.css */
+/* Styling für den BauFi-Rechner */
+
+/* Verbesserte Slider */
+input[type="range"] {
+    -webkit-appearance: none;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #3b82f6;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #3b82f6;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+/* Verbesserte Ergebnisdarstellung */
+.text-2xl.font-bold {
+    color: #1e40af;
+}
+
+/* Tab Navigation Styling */
+.tab-link {
+    transition: all 0.2s ease;
+}
+
+.tab-link.active {
+    background-color: #fff;
+    border-color: #e5e7eb;
+    border-bottom-color: transparent;
+    color: #1e40af;
+    font-weight: 600;
+}
+
+.tab-link:not(.active) {
+    color: #6b7280;
+}
+
+.tab-link:hover:not(.active) {
+    background-color: #f3f4f6;
+}
+
+/* Animation für Buttons */
+button {
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+/* API Provider Styling */
+#openai-provider:hover, #anthropic-provider:hover, #deepseek-provider:hover {
+    border-color: #3b82f6;
+    background-color: #f0f7ff;
+}
+
+#openai-provider.border-blue-500, #anthropic-provider.border-blue-500, #deepseek-provider.border-blue-500 {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Detailed Object Data Toggle */
+.detailed-object-data {
+    transition: all 0.3s ease;
+}
+
+/* Darlehen Block Styling */
+.darlehen-block {
+    transition: all 0.2s ease;
+}
+
+.darlehen-block:hover {
+    background-color: #f9fafb;
+}
+
+.darlehen-remove {
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.darlehen-remove:hover {
+    opacity: 1;
+}
+
+/* Analyse Optionen */
+#marktdaten-analyse, #belastungs-analyse, #optimierungs-analyse, #vollstaendige-analyse {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#marktdaten-analyse:hover, #belastungs-analyse:hover, #optimierungs-analyse:hover, #vollstaendige-analyse:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .container {
+        padding: 0.5rem;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    .p-6 {
+        padding: 1rem;
+    }
+    
+    .text-2xl {
+        font-size: 1.25rem;
+    }
+    
+    .grid-cols-2, .grid-cols-3, .grid-cols-4 {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Verbesserte Darstellung auf kleinen Bildschirmen */
+    .tab-link {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    input[type="range"] {
+        width: 100%;
+    }
+    
+    .darlehen-block .grid {
+        grid-template-columns: 1fr;
+    }
+}
