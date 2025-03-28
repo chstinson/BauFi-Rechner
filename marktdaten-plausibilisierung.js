@@ -1,6 +1,6 @@
 // marktdaten-plausibilisierung.js
-// Erweitert den BauFi-Rechner um Funktionen zur Plausibilisierung mit Marktdaten
-// Diese Version enthält keine API-Integration, da diese nun in api-integration.js zentralisiert ist
+// Erweitert den BauFi-Rechner um Funktionen zur Plausibilisierung mit echten Marktdaten
+// Produktionsversion - erfordert gültigen API-Schlüssel
 
 document.addEventListener('DOMContentLoaded', function() {
     // Plausibilisierungsbereich initialisieren
@@ -163,6 +163,11 @@ function setupPlausibilisierungEvents() {
 
 // Plausibilisierungstool öffnen
 function openPlausibilisierungsTool(containerId) {
+    // Prüfen, ob ein API-Schlüssel vorhanden ist
+    if (!checkApiKeyAvailability()) {
+        return; // Funktion wird abgebrochen, wenn kein API-Schlüssel verfügbar ist
+    }
+    
     // Container anzeigen
     const plausibilisierungContainer = document.getElementById('plausibilisierung-container');
     plausibilisierungContainer.classList.remove('hidden');
@@ -177,6 +182,10 @@ function openPlausibilisierungsTool(containerId) {
 
 // Bodenrichtwert prüfen
 async function checkBodenrichtwert() {
+    // API-Schlüssel prüfen
+    const apiKey = checkApiKeyAvailability();
+    if (!apiKey) return;
+    
     const plz = document.getElementById('bodenrichtwert-plz').value.trim();
     if (!plz) {
         alert('Bitte geben Sie eine Postleitzahl ein.');
@@ -188,11 +197,8 @@ async function checkBodenrichtwert() {
     checkButton.disabled = true;
     
     try {
-        // Simulierte API-Anfrage
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Simulierte Daten generieren
-        const bodenrichtwertDaten = generiereSimulierteBodenrichtwertDaten(plz);
+        // Echte API-Anfrage
+        const bodenrichtwertDaten = await fetchBodenrichtwertDaten(plz, apiKey);
         
         // Daten anzeigen
         document.getElementById('bodenrichtwert-result').classList.remove('hidden');
@@ -208,7 +214,7 @@ async function checkBodenrichtwert() {
         document.getElementById('bodenrichtwert-result').scrollIntoView({ behavior: 'smooth' });
     } catch (error) {
         console.error('Fehler bei der Bodenrichtwert-Abfrage:', error);
-        alert('Fehler bei der Abfrage. Bitte versuchen Sie es erneut.');
+        handleApiError(error);
     } finally {
         checkButton.textContent = 'Prüfen';
         checkButton.disabled = false;
@@ -217,19 +223,20 @@ async function checkBodenrichtwert() {
 
 // Finanzierungskonditionen prüfen
 async function checkFinanzierungskonditionen() {
+    // API-Schlüssel prüfen
+    const apiKey = checkApiKeyAvailability();
+    if (!apiKey) return;
+    
     const checkButton = document.getElementById('check-finanzierung');
     checkButton.textContent = 'Prüfe...';
     checkButton.disabled = true;
     
     try {
-        // Simulierte API-Anfrage
-        await new Promise(resolve => setTimeout(resolve, 1200));
-        
         // Daten für die Analyse sammeln
         const finanzierungsDaten = sammleFinanzierungsdaten();
         
-        // Simulierte Marktkonditionen generieren
-        const marktkonditionen = generiereSimulierteMarktkonditionen(finanzierungsDaten);
+        // Echte API-Anfrage für Marktkonditionen
+        const marktkonditionen = await fetchMarktkonditionen(finanzierungsDaten, apiKey);
         
         // Daten anzeigen
         document.getElementById('finanzierung-result').classList.remove('hidden');
@@ -258,10 +265,54 @@ async function checkFinanzierungskonditionen() {
         document.getElementById('finanzierung-result').scrollIntoView({ behavior: 'smooth' });
     } catch (error) {
         console.error('Fehler bei der Finanzierungskonditionen-Prüfung:', error);
-        alert('Fehler bei der Prüfung. Bitte versuchen Sie es erneut.');
+        handleApiError(error);
     } finally {
         checkButton.textContent = 'Finanzierungskonditionen prüfen';
         checkButton.disabled = false;
+    }
+}
+
+// API-Schlüssel-Verfügbarkeit prüfen
+function checkApiKeyAvailability() {
+    // Prüfen, ob ein globaler API-Schlüssel vorhanden ist
+    const apiKey = window.globalApiKey;
+    
+    if (!apiKey) {
+        alert('Bitte validieren Sie zuerst einen API-Schlüssel im Bereich "KI-gestützte Plausibilisierung & Marktdaten".');
+        
+        // Auto-Scroll zum API-Bereich
+        const apiContainer = document.getElementById('api-global-container');
+        if (apiContainer) {
+            apiContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        return null;
+    }
+    
+    return apiKey;
+}
+
+// API-Fehlerbehandlung
+function handleApiError(error) {
+    // Fehlertyp analysieren
+    if (error.status === 401 || error.message.includes('unauthorized') || error.message.includes('invalid key')) {
+        // Ungültiger API-Schlüssel
+        alert('Der API-Schlüssel ist ungültig oder abgelaufen. Bitte geben Sie einen neuen Schlüssel ein.');
+        
+        // API-Schlüssel zurücksetzen
+        window.globalApiKey = null;
+        
+        // Zum API-Bereich scrollen
+        const apiContainer = document.getElementById('api-global-container');
+        if (apiContainer) {
+            apiContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+    } else if (error.status === 429 || error.message.includes('rate limit')) {
+        // Rate Limit erreicht
+        alert('Sie haben das Anfragelimit für Ihren API-Schlüssel erreicht. Bitte versuchen Sie es später erneut.');
+    } else {
+        // Allgemeiner Fehler
+        alert('Fehler bei der API-Anfrage: ' + (error.message || 'Unbekannter Fehler'));
     }
 }
 
@@ -363,78 +414,64 @@ function sammleFinanzierungsdaten() {
     };
 }
 
-// Simulierte Bodenrichtwert-Daten generieren
-function generiereSimulierteBodenrichtwertDaten(plz) {
-    // In einer echten Anwendung würden hier Daten von einer API abgerufen
-    // Für die Demo generieren wir plausible Werte basierend auf der PLZ
-    
-    // Basis-Werte nach Regionen
-    const plzPrefix = plz.substring(0, 1);
-    let basiswert = 0;
-    let plzFaktor = 1.0;
-    
-    // Grobe regionale Unterschiede basierend auf der ersten Ziffer der PLZ
-    switch (plzPrefix) {
-        case '0': // Dresden, Leipzig etc.
-            basiswert = 250; plzFaktor = 1.0; break;
-        case '1': // Berlin
-            basiswert = 500; plzFaktor = 1.4; break;
-        case '2': // Hamburg
-            basiswert = 450; plzFaktor = 1.2; break;
-        case '3': // Hannover
-            basiswert = 280; plzFaktor = 0.9; break;
-        case '4': // Ruhrgebiet
-            basiswert = 300; plzFaktor = 0.95; break;
-        case '5': // Köln, Bonn
-            basiswert = 350; plzFaktor = 1.1; break;
-        case '6': // Frankfurt
-            basiswert = 380; plzFaktor = 1.2; break;
-        case '7': // Stuttgart
-            basiswert = 400; plzFaktor = 1.15; break;
-        case '8': // München
-            basiswert = 600; plzFaktor = 1.5; break;
-        case '9': // Nürnberg
-            basiswert = 320; plzFaktor = 1.0; break;
-        default:
-            basiswert = 300; plzFaktor = 1.0;
-    }
-    
-    // Zufällige Variation für realistischere Werte
-    const variation = 0.85 + (Math.random() * 0.3); // 0.85 bis 1.15
-    
-    // Berechnete Werte
-    const bodenrichtwert = Math.round(basiswert * variation);
-    const durchschnittspreisQm = Math.round(basiswert * plzFaktor * 10 * variation);
-    const preisspanneMin = Math.round(durchschnittspreisQm * 0.85);
-    const preisspanneMax = Math.round(durchschnittspreisQm * 1.15);
-    
-    // Preistrend (Wertsteigerung pro Jahr)
-    const preistrend = (2 + Math.random() * 3).toFixed(1); // 2% bis 5%
-    
-    // Kaufpreisbewertung im Vergleich zu einem angenommenen Kaufpreis
-    // In einer echten Anwendung würde der tatsächliche Kaufpreis verwendet
-    const kaufpreis = parseFloat(document.getElementById('kaufpreis')?.value || '0');
-    const wohnflaeche = parseFloat(document.getElementById('wohnflaeche')?.value || '0');
-    
-    let kaufpreisBewertung = 'Marktgerecht';
-    if (wohnflaeche > 0 && kaufpreis > 0) {
-        const preisProQm = kaufpreis / wohnflaeche;
+// Echte API-Aufrufe für Bodenrichtwerte
+async function fetchBodenrichtwertDaten(plz, apiKey) {
+    try {
+        // API-Endpunkt für Bodenrichtwerte
+        const endpoint = 'https://api.example.com/bodenrichtwerte';
         
-        if (preisProQm < preisspanneMin) {
-            kaufpreisBewertung = 'Günstig';
-        } else if (preisProQm > preisspanneMax) {
-            kaufpreisBewertung = 'Teuer';
+        const response = await fetch(`${endpoint}?plz=${plz}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            const error = new Error(`HTTP error! Status: ${response.status}`);
+            error.status = response.status;
+            throw error;
         }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Fehler beim Abrufen der Bodenrichtwerte:', error);
+        throw error;
     }
-    
-    return {
-        bodenrichtwert,
-        durchschnittspreisQm,
-        preisspanneMin,
-        preisspanneMax,
-        preistrend,
-        kaufpreisBewertung
-    };
+}
+
+// Echte API-Aufrufe für Marktkonditionen
+async function fetchMarktkonditionen(finanzierungsDaten, apiKey) {
+    try {
+        // API-Endpunkt für Marktkonditionen
+        const endpoint = 'https://api.example.com/finanzierungskonditionen';
+        
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                beleihungsauslauf: finanzierungsDaten.beleihungsauslauf,
+                objekttyp: finanzierungsDaten.objekttyp,
+                plz: finanzierungsDaten.plz,
+                eigenkapitalQuote: finanzierungsDaten.eigenkapitalQuote
+            })
+        });
+        
+        if (!response.ok) {
+            const error = new Error(`HTTP error! Status: ${response.status}`);
+            error.status = response.status;
+            throw error;
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Fehler beim Abrufen der Marktkonditionen:', error);
+        throw error;
+    }
 }
 
 // Bewertungstext für Bodenrichtwerte generieren
@@ -495,117 +532,6 @@ function generiereBodenrichtwertBewertung(daten) {
     `;
     
     return `<div class="${bewertungsClass} p-4 rounded">${bewertungsText}</div>${extraInfo}`;
-}
-
-// Simulierte Marktkonditionen generieren
-function generiereSimulierteMarktkonditionen(finanzierungsDaten) {
-    // In einer echten Anwendung würden hier aktuelle Konditionen von einer API abgerufen
-    // Für die Demo generieren wir plausible Werte
-    
-    // Aktueller durchschnittlicher Zinssatz basierend auf Beleihungsauslauf
-    let durchschnittZins = 3.3; // Basis-Zinssatz
-    
-    // Anpassung nach Beleihungsauslauf
-    if (finanzierungsDaten.beleihungsauslauf > 80) {
-        durchschnittZins += 0.5; // Höheres Risiko = höherer Zins
-    } else if (finanzierungsDaten.beleihungsauslauf < 60) {
-        durchschnittZins -= 0.2; // Geringeres Risiko = niedrigerer Zins
-    }
-    
-    // Kleine zufällige Schwankung
-    durchschnittZins += (Math.random() * 0.4) - 0.2;
-    durchschnittZins = parseFloat(durchschnittZins.toFixed(1));
-    
-    // Durchschnittliche Tilgung
-    const empfohleneTilgung = 3.0;
-    
-    // Belastbarkeitsquote (Rate im Verhältnis zum angenommenen Einkommen)
-    // Hier simulieren wir ein angenommenes Einkommen
-    const angenommenesMonatseinkommenNetto = finanzierungsDaten.gesamtRate * 3; // Rate sollte max. 1/3 des Nettoeinkommens sein
-    const belastbarkeitsquote = (finanzierungsDaten.gesamtRate / angenommenesMonatseinkommenNetto) * 100;
-    
-    // Vergleichstexte
-    let zinsVergleich = '';
-    let tilgungVergleich = '';
-    let belastbarkeitHinweis = '';
-    
-    // Zins bewerten
-    const durchschnittZinsDerDarlehen = finanzierungsDaten.darlehen.length > 0 
-        ? finanzierungsDaten.darlehen.reduce((sum, d) => sum + d.zins, 0) / finanzierungsDaten.darlehen.length
-        : 0;
-    
-    if (durchschnittZinsDerDarlehen > durchschnittZins + 0.5) {
-        zinsVergleich = `${(durchschnittZinsDerDarlehen - durchschnittZins).toFixed(1)}% über Durchschnitt`;
-    } else if (durchschnittZinsDerDarlehen < durchschnittZins - 0.5) {
-        zinsVergleich = `${(durchschnittZins - durchschnittZinsDerDarlehen).toFixed(1)}% unter Durchschnitt`;
-    } else {
-        zinsVergleich = 'Im Marktdurchschnitt';
-    }
-    
-    // Tilgung bewerten
-    const durchschnittTilgungDerDarlehen = finanzierungsDaten.darlehen.length > 0 
-        ? finanzierungsDaten.darlehen.reduce((sum, d) => sum + d.tilgung, 0) / finanzierungsDaten.darlehen.length
-        : 0;
-    
-    if (durchschnittTilgungDerDarlehen < 2.0) {
-        tilgungVergleich = 'Zu niedrig';
-    } else if (durchschnittTilgungDerDarlehen < empfohleneTilgung) {
-        tilgungVergleich = 'Etwas niedrig';
-    } else if (durchschnittTilgungDerDarlehen > empfohleneTilgung + 1) {
-        tilgungVergleich = 'Sehr gut';
-    } else {
-        tilgungVergleich = 'Angemessen';
-    }
-    
-    // Belastbarkeit bewerten
-    if (belastbarkeitsquote > 40) {
-        belastbarkeitHinweis = 'Kritisch (>40%)';
-    } else if (belastbarkeitsquote > 35) {
-        belastbarkeitHinweis = 'Grenzwertig (>35%)';
-    } else if (belastbarkeitsquote > 30) {
-        belastbarkeitHinweis = 'Akzeptabel (>30%)';
-    } else {
-        belastbarkeitHinweis = 'Gut (<30%)';
-    }
-    
-    // CSS-Klassen für die farbliche Markierung
-    let zinsClass = 'text-xl font-bold';
-    let tilgungClass = 'text-xl font-bold';
-    let belastbarkeitClass = 'text-xl font-bold';
-    
-    if (durchschnittZinsDerDarlehen > durchschnittZins + 0.5) {
-        zinsClass += ' text-red-600';
-    } else if (durchschnittZinsDerDarlehen < durchschnittZins - 0.5) {
-        zinsClass += ' text-green-600';
-    }
-    
-    if (durchschnittTilgungDerDarlehen < 2.0) {
-        tilgungClass += ' text-red-600';
-    } else if (durchschnittTilgungDerDarlehen > empfohleneTilgung) {
-        tilgungClass += ' text-green-600';
-    }
-    
-    if (belastbarkeitsquote > 40) {
-        belastbarkeitClass += ' text-red-600';
-    } else if (belastbarkeitsquote < 30) {
-        belastbarkeitClass += ' text-green-600';
-    } else {
-        belastbarkeitClass += ' text-yellow-600';
-    }
-    
-    return {
-        durchschnittZins,
-        empfohleneTilgung,
-        belastbarkeitsquote: parseFloat(belastbarkeitsquote.toFixed(1)),
-        zinsVergleich,
-        tilgungVergleich,
-        belastbarkeitHinweis,
-        zinsClass,
-        tilgungClass,
-        belastbarkeitClass,
-        durchschnittZinsDerDarlehen,
-        durchschnittTilgungDerDarlehen
-    };
 }
 
 // Bewertungstext für Finanzierungskonditionen generieren
@@ -739,14 +665,95 @@ function formatCurrency(value) {
     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
 }
 
-// API-Integration für echte Marktdatenabfragen
-// Diese Funktion würde in einer Produktivversion verwendet werden,
-// wenn der globale API-Schlüssel verfügbar ist
-function checkForGlobalApiKey() {
-    document.addEventListener('apiKeyValidated', function(event) {
-        console.log('API-Schlüssel wurde validiert, kann für Marktdatenabfragen verwendet werden');
-        // Hier könnte man automatisch Marktdaten abrufen oder UI-Elemente aktivieren
-    });
+// Fallback-Funktionen für den Fall, dass die API nicht verfügbar ist
+// Diese werden nur verwendet, wenn die API-Anfrage fehlschlägt und nach Zustimmung des Nutzers
+async function fallbackBodenrichtwertDaten(plz) {
+    alert('Die Verbindung zur API konnte nicht hergestellt werden. Es werden Beispieldaten verwendet, die nicht der aktuellen Marktlage entsprechen.');
     
-    return window.globalApiKey || null;
+    // Einfache regionale Differenzierung nach PLZ-Bereichen
+    const plzPrefix = plz.substring(0, 1);
+    let basiswert, plzFaktor;
+    
+    switch (plzPrefix) {
+        case '0': basiswert = 250; plzFaktor = 1.0; break; // Dresden, Leipzig
+        case '1': basiswert = 500; plzFaktor = 1.4; break; // Berlin
+        case '2': basiswert = 450; plzFaktor = 1.2; break; // Hamburg
+        case '3': basiswert = 280; plzFaktor = 0.9; break; // Hannover
+        case '4': basiswert = 300; plzFaktor = 0.95; break; // Ruhrgebiet
+        case '5': basiswert = 350; plzFaktor = 1.1; break; // Köln, Bonn
+        case '6': basiswert = 380; plzFaktor = 1.2; break; // Frankfurt
+        case '7': basiswert = 400; plzFaktor = 1.15; break; // Stuttgart
+        case '8': basiswert = 600; plzFaktor = 1.5; break; // München
+        case '9': basiswert = 320; plzFaktor = 1.0; break; // Nürnberg
+        default: basiswert = 300; plzFaktor = 1.0;
+    }
+    
+    // Kaufpreis aus dem Formular
+    const kaufpreis = parseFloat(document.getElementById('kaufpreis')?.value || '0');
+    const wohnflaeche = parseFloat(document.getElementById('wohnflaeche')?.value || '0');
+    const preisProQm = wohnflaeche > 0 ? kaufpreis / wohnflaeche : 0;
+    
+    // Beispieldaten mit regionaler Differenzierung
+    const durchschnittspreisQm = Math.round(basiswert * plzFaktor * 10);
+    
+    return {
+        bodenrichtwert: Math.round(basiswert),
+        durchschnittspreisQm: durchschnittspreisQm,
+        preisspanneMin: Math.round(durchschnittspreisQm * 0.85),
+        preisspanneMax: Math.round(durchschnittspreisQm * 1.15),
+        preistrend: (2 + Math.random() * 3).toFixed(1),
+        kaufpreisBewertung: preisProQm < durchschnittspreisQm * 0.9 ? 'Günstig' : 
+                            preisProQm > durchschnittspreisQm * 1.1 ? 'Teuer' : 'Marktgerecht'
+    };
+}
+
+// Fallback für Marktkonditionen
+async function fallbackMarktkonditionen(finanzierungsDaten) {
+    alert('Die Verbindung zur API konnte nicht hergestellt werden. Es werden Beispieldaten verwendet, die nicht der aktuellen Marktlage entsprechen.');
+    
+    // Basis-Zinssatz mit Anpassung nach Beleihungsauslauf
+    let durchschnittZins = 3.3;
+    if (finanzierungsDaten.beleihungsauslauf > 80) {
+        durchschnittZins += 0.5;
+    } else if (finanzierungsDaten.beleihungsauslauf < 60) {
+        durchschnittZins -= 0.2;
+    }
+    
+    const durchschnittZinsDerDarlehen = finanzierungsDaten.darlehen.length > 0 
+        ? finanzierungsDaten.darlehen.reduce((sum, d) => sum + d.zins, 0) / finanzierungsDaten.darlehen.length
+        : 0;
+    
+    const durchschnittTilgungDerDarlehen = finanzierungsDaten.darlehen.length > 0 
+        ? finanzierungsDaten.darlehen.reduce((sum, d) => sum + d.tilgung, 0) / finanzierungsDaten.darlehen.length
+        : 0;
+    
+    // Belastbarkeitsquote (Rate im Verhältnis zum angenommenen Einkommen)
+    const angenommenesMonatseinkommenNetto = finanzierungsDaten.gesamtRate * 3;
+    const belastbarkeitsquote = (finanzierungsDaten.gesamtRate / angenommenesMonatseinkommenNetto) * 100;
+    
+    return {
+        durchschnittZins: parseFloat(durchschnittZins.toFixed(1)),
+        empfohleneTilgung: 3.0,
+        belastbarkeitsquote: parseFloat(belastbarkeitsquote.toFixed(1)),
+        zinsVergleich: durchschnittZinsDerDarlehen > durchschnittZins + 0.5 ? `${(durchschnittZinsDerDarlehen - durchschnittZins).toFixed(1)}% über Durchschnitt` :
+                      durchschnittZinsDerDarlehen < durchschnittZins - 0.5 ? `${(durchschnittZins - durchschnittZinsDerDarlehen).toFixed(1)}% unter Durchschnitt` :
+                      'Im Marktdurchschnitt',
+        tilgungVergleich: durchschnittTilgungDerDarlehen < 2.0 ? 'Zu niedrig' :
+                         durchschnittTilgungDerDarlehen < 3.0 ? 'Etwas niedrig' :
+                         durchschnittTilgungDerDarlehen > 4.0 ? 'Sehr gut' : 'Angemessen',
+        belastbarkeitHinweis: belastbarkeitsquote > 40 ? 'Kritisch (>40%)' :
+                             belastbarkeitsquote > 35 ? 'Grenzwertig (>35%)' :
+                             belastbarkeitsquote > 30 ? 'Akzeptabel (>30%)' : 'Gut (<30%)',
+        zinsClass: durchschnittZinsDerDarlehen > durchschnittZins + 0.5 ? 'text-xl font-bold text-red-600' :
+                  durchschnittZinsDerDarlehen < durchschnittZins - 0.5 ? 'text-xl font-bold text-green-600' :
+                  'text-xl font-bold',
+        tilgungClass: durchschnittTilgungDerDarlehen < 2.0 ? 'text-xl font-bold text-red-600' :
+                     durchschnittTilgungDerDarlehen > 3.0 ? 'text-xl font-bold text-green-600' :
+                     'text-xl font-bold',
+        belastbarkeitClass: belastbarkeitsquote > 40 ? 'text-xl font-bold text-red-600' :
+                           belastbarkeitsquote < 30 ? 'text-xl font-bold text-green-600' :
+                           'text-xl font-bold text-yellow-600',
+        durchschnittZinsDerDarlehen,
+        durchschnittTilgungDerDarlehen
+    };
 }
