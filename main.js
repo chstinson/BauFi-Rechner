@@ -506,7 +506,16 @@ function initAPIIntegration() {
     });
     
     // API-Schlüssel validieren
-    document.getElementById('validate-global-api').addEventListener('click', validateGlobalApiKey);
+    document.getElementById('validate-global-api').addEventListener('click', () => {
+        // Diese Funktion ruft die validateGlobalApiKey-Funktion aus analysis.js auf
+        // Da wir keinen direkten Import haben, prüfen wir zuerst, ob die Funktion existiert
+        if (typeof validateGlobalApiKey === 'function') {
+            validateGlobalApiKey();
+        } else {
+            console.error('validateGlobalApiKey ist nicht definiert. Bitte stellen Sie sicher, dass analysis.js vor main.js geladen wird.');
+            alert('Fehler bei der API-Validierung. Bitte laden Sie die Seite neu.');
+        }
+    });
 }
 
 // Provider auswählen
@@ -530,100 +539,6 @@ function selectProvider(providerId) {
     }
     
     document.getElementById('api-provider-label').textContent = providerLabel;
-}
-
-// API-Schlüssel validieren
-async function validateGlobalApiKey() {
-    const apiProvider = window.BauFiRechner.apiProvider;
-    if (!apiProvider) {
-        alert('Bitte wählen Sie einen API-Provider aus.');
-        return;
-    }
-    
-    const apiKey = document.getElementById('global-api-key').value.trim();
-    if (!apiKey) {
-        alert('Bitte geben Sie Ihren API-Schlüssel ein.');
-        return;
-    }
-    
-    const validateButton = document.getElementById('validate-global-api');
-    validateButton.textContent = 'Prüfe...';
-    validateButton.disabled = true;
-    
-    try {
-        // In der Produktionsversion würde hier eine tatsächliche API-Validierung stattfinden
-        // Für die Demo-Version simulieren wir eine erfolgreiche Validierung
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // API-Schlüssel speichern
-        window.BauFiRechner.apiKey = apiKey;
-        
-        // Status aktualisieren
-        document.getElementById('api-status').classList.remove('hidden');
-        document.getElementById('api-status').classList.add('bg-green-50', 'border', 'border-green-500');
-        document.getElementById('api-status').innerHTML = `
-            <p class="text-green-700">
-                <i class="fas fa-check-circle mr-2"></i>
-                API-Schlüssel für ${getProviderName(apiProvider)} erfolgreich validiert. Sie können nun die KI-Analysefunktionen nutzen.
-            </p>
-        `;
-        
-        // UI in anderen Tabs aktualisieren
-        document.getElementById('ki-check-container').innerHTML = `
-            <p class="text-sm text-green-800">
-                <i class="fas fa-check-circle mr-2"></i>
-                API-Schlüssel für ${getProviderName(apiProvider)} erfolgreich validiert. Sie können die Analyse und Optimierung starten.
-            </p>
-        `;
-        document.getElementById('ki-check-container').classList.remove('bg-yellow-50', 'border-yellow-200');
-        document.getElementById('ki-check-container').classList.add('bg-green-50', 'border-green-200');
-        
-        // Enable analysis options
-        enableAnalysisOptions();
-    } catch (error) {
-        console.error('Fehler bei der API-Validierung:', error);
-        
-        document.getElementById('api-status').classList.remove('hidden');
-        document.getElementById('api-status').classList.add('bg-red-50', 'border', 'border-red-500');
-        document.getElementById('api-status').innerHTML = `
-            <p class="text-red-700">
-                <i class="fas fa-exclamation-circle mr-2"></i>
-                Der API-Schlüssel konnte nicht validiert werden. Bitte überprüfen Sie Ihre Eingabe oder versuchen Sie es später erneut.
-            </p>
-        `;
-    } finally {
-        validateButton.textContent = 'Validieren';
-        validateButton.disabled = false;
-    }
-}
-
-// Analyse-Optionen aktivieren
-function enableAnalysisOptions() {
-    const analyseOptionen = document.getElementById('analyse-optionen');
-    const analyseOptions = analyseOptionen.querySelectorAll('div');
-    
-    analyseOptions.forEach(option => {
-        option.classList.add('bg-white');
-        option.addEventListener('click', handleAnalysisOptionClick);
-    });
-}
-
-// Analyse-Option Click-Handler
-function handleAnalysisOptionClick(e) {
-    const optionId = e.currentTarget.id;
-    
-    // Analyse starten
-    startAnalysis(optionId);
-}
-
-// Provider-Name abrufen
-function getProviderName(providerId) {
-    switch(providerId) {
-        case 'openai': return 'OpenAI (GPT-4)';
-        case 'anthropic': return 'Claude';
-        case 'deepseek': return 'DeepSeek';
-        default: return 'KI-Provider';
-    }
 }
 
 // Formatierungsfunktion für Währungsbeträge
