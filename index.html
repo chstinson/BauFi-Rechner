@@ -102,54 +102,6 @@
     </div>
 </div>
     
-    <div id="api-content" class="mt-4">
-        <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded">
-            <p class="text-sm text-blue-800">
-                Geben Sie Ihren API-Schlüssel ein, um Zugriff auf fortschrittliche Plausibilitätsprüfungen und Marktdaten zu erhalten. Ihr Schlüssel wird nur für diese Sitzung verwendet und nicht gespeichert.
-            </p>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="border rounded p-4 cursor-pointer" id="openai-provider">
-                <div class="flex items-center mb-2">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/180px-ChatGPT_logo.svg.png" alt="OpenAI Logo" class="h-6 w-6 mr-2">
-                    <span class="font-medium">OpenAI (GPT-4)</span>
-                </div>
-                <p class="text-sm text-gray-600">Nutzen Sie GPT-4 für detaillierte Analysen Ihrer Baufinanzierung.</p>
-            </div>
-            
-            <div class="border rounded p-4 cursor-pointer" id="anthropic-provider">
-                <div class="flex items-center mb-2">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Anthropic_logo.svg/220px-Anthropic_logo.svg.png" alt="Claude Logo" class="h-6 w-6 mr-2">
-                    <span class="font-medium">Claude</span>
-                </div>
-                <p class="text-sm text-gray-600">Claude analysiert Ihre Immobilienfinanzierung und liefert Optimierungsvorschläge.</p>
-            </div>
-            
-            <div class="border rounded p-4 cursor-pointer" id="deepseek-provider">
-                <div class="flex items-center mb-2">
-                    <img src="https://www.deepseek.com/favicon.ico" alt="DeepSeek Logo" class="h-6 w-6 mr-2">
-                    <span class="font-medium">DeepSeek</span>
-                </div>
-                <p class="text-sm text-gray-600">DeepSeek's KI bewertet Ihre Immobilienfinanzierung und vergleicht Marktdaten.</p>
-            </div>
-        </div>
-        
-        <div id="api-key-section" class="mb-4 hidden">
-            <label class="block text-sm font-medium mb-1" id="api-provider-label">API-Schlüssel</label>
-            <div class="flex items-center">
-                <input type="password" id="global-api-key" class="w-full p-2 border rounded" placeholder="Ihren API-Schlüssel eingeben">
-                <button id="validate-global-api" class="ml-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Validieren</button>
-            </div>
-            <p class="text-xs text-gray-500 mt-1">Ihr API-Schlüssel wird nur für diese Anfragen verwendet und nicht gespeichert.</p>
-        </div>
-        
-        <div id="api-status" class="hidden p-3 rounded">
-            <!-- Wird dynamisch befüllt -->
-        </div>
-    </div>
-</div>
-
 <!-- JavaScript für das Ein-/Ausklappen hinzufügen -->
 <script>
 function toggleApiSection() {
@@ -176,46 +128,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div class="border rounded p-4 cursor-pointer" id="openai-provider">
-                    <div class="flex items-center mb-2">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/180px-ChatGPT_logo.svg.png" alt="OpenAI Logo" class="h-6 w-6 mr-2">
-                        <span class="font-medium">OpenAI (GPT-4)</span>
-                    </div>
-                    <p class="text-sm text-gray-600">Nutzen Sie GPT-4 für detaillierte Analysen Ihrer Baufinanzierung.</p>
-                </div>
-                
-                <div class="border rounded p-4 cursor-pointer" id="anthropic-provider">
-                    <div class="flex items-center mb-2">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Anthropic_logo.svg/220px-Anthropic_logo.svg.png" alt="Claude Logo" class="h-6 w-6 mr-2">
-                        <span class="font-medium">Claude</span>
-                    </div>
-                    <p class="text-sm text-gray-600">Claude analysiert Ihre Immobilienfinanzierung und liefert Optimierungsvorschläge.</p>
-                </div>
-                
-                <div class="border rounded p-4 cursor-pointer" id="deepseek-provider">
-                    <div class="flex items-center mb-2">
-                        <img src="https://www.deepseek.com/favicon.ico" alt="DeepSeek Logo" class="h-6 w-6 mr-2">
-                        <span class="font-medium">DeepSeek</span>
-                    </div>
-                    <p class="text-sm text-gray-600">DeepSeek's KI bewertet Ihre Immobilienfinanzierung und vergleicht Marktdaten.</p>
-                </div>
-            </div>
-            
-            <div id="api-key-section" class="mb-4">
-                <label class="block text-sm font-medium mb-1" id="api-provider-label">API-Schlüssel</label>
-                <div class="flex items-center">
-                    <input type="password" id="global-api-key" class="w-full p-2 border rounded" placeholder="Ihren API-Schlüssel eingeben">
-                    <button id="validate-global-api" class="ml-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Validieren</button>
-                </div>
-                <p class="text-xs text-gray-500 mt-1">Ihr API-Schlüssel wird nur für diese Anfragen verwendet und nicht gespeichert.</p>
-            </div>
-            
-            <div id="api-status" class="hidden p-3 rounded">
-                <!-- Wird dynamisch befüllt -->
-            </div>
-        </div>
-
         <!-- Tab-Inhalte -->
         <div class="tab-contents">
             <!-- Übersicht Tab -->
