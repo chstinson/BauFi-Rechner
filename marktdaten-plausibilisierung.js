@@ -1,181 +1,6 @@
-// Simulierte API-Antwort generieren
-function generiereSimulierteApiAntwort(daten, provider) {
-    // In einer echten Anwendung würde hier die KI-API genutzt
-    // Für die Demo generieren wir einen plausiblen Text
-    
-    const preisProQm = daten.wohnflaeche > 0 ? daten.kaufpreis / daten.wohnflaeche : 0;
-    
-    // Nach Region differenzierte Preiseinschätzung
-    let regionaleEinschaetzung = "durchschnittlich";
-    let regionName = "dieser Region";
-    
-    if (daten.plz) {
-        const plzPrefix = daten.plz.substring(0, 1);
-        switch (plzPrefix) {
-            case '1': regionName = "Berlin"; break;
-            case '2': regionName = "Hamburg"; break;
-            case '3': regionName = "Niedersachsen"; break;
-            case '4': regionName = "Ruhrgebiet"; break;
-            case '5': regionName = "Köln/Bonn"; break;
-            case '6': regionName = "Frankfurt/Rhein-Main"; break;
-            case '7': regionName = "Stuttgart"; break;
-            case '8': regionName = "München"; break;
-            case '9': regionName = "Nürnberg"; break;
-            default: regionName = "dieser Region";
-        }
-        
-        // Preise für die Region einschätzen
-        const regionalpreise = {
-            '1': 4800, '2': 4500, '3': 2800, '4': 2500, 
-            '5': 3600, '6': 4200, '7': 4000, '8': 6500, '9': 3200
-        };
-        
-        const regionalerDurchschnitt = regionalpreise[plzPrefix] || 3500;
-        
-        if (preisProQm < regionalerDurchschnitt * 0.85) {
-            regionaleEinschaetzung = "unter dem Durchschnitt";
-        } else if (preisProQm > regionalerDurchschnitt * 1.15) {
-            regionaleEinschaetzung = "über dem Durchschnitt";
-        }
-    }
-    
-    // Antwort basierend auf Provider anpassen
-    let antwort = '';
-    
-    if (provider === 'openai') {
-        antwort = `<div class="p-4 bg-gray-50 border rounded whitespace-pre-line">
-# Analyse Ihrer Immobilienfinanzierung
-
-## 1. Standortanalyse
-${daten.ort ? `Die Immobilie befindet sich in ${daten.ort}${daten.plz ? ` (PLZ ${daten.plz})` : ''}, einer Region, die als Wohnlage ${regionName === "München" || regionName === "Hamburg" || regionName === "Berlin" ? "stark nachgefragt" : "durchschnittlich nachgefragt"} ist.` : 'Keine Standortangabe vorhanden.'}
-
-Die Immobilienpreise sind in ${regionName} in den letzten Jahren ${regionName === "München" || regionName === "Berlin" || regionName === "Hamburg" || regionName === "Frankfurt/Rhein-Main" ? "stark gestiegen" : "moderat gestiegen"}.
-
-${daten.objekttyp ? `Bei einem ${daten.objekttyp} in dieser Lage ist mittelfristig mit ${regionName === "München" || regionName === "Hamburg" || regionName === "Berlin" ? "stabilen bis steigenden" : "stabilen"} Preisen zu rechnen.` : ''}
-
-## 2. Kaufpreisbewertung
-Der Kaufpreis von ${formatCurrency(daten.kaufpreis)} für eine Immobilie mit ${daten.wohnflaeche} m² entspricht einem Quadratmeterpreis von ${formatCurrency(preisProQm)}.
-
-Dieser Preis liegt ${regionaleEinschaetzung} für ${regionName}. ${preisProQm > 4000 ? "Es handelt sich um ein hochpreisiges Segment." : preisProQm > 3000 ? "Es handelt sich um ein mittleres bis gehobenes Preissegment." : "Es handelt sich um ein moderates Preissegment."}
-
-${daten.baujahr ? `Für ein Objekt aus dem Jahr ${daten.baujahr} ist dieser Preis ${new Date().getFullYear() - daten.baujahr > 40 ? "unter Berücksichtigung des Alters zu bewerten" : "angemessen"}.` : ''}
-
-## 3. Finanzierungsstruktur
-Die Finanzierungsstruktur basiert auf ${formatCurrency(daten.eigenkapital)} Eigenkapital (${daten.eigenkapitalQuote.toFixed(1)}%) und einer Fremdfinanzierung über ${daten.darlehen.length} Darlehen.
-
-Der durchschnittliche Zinssatz beträgt ${(daten.darlehen.reduce((sum, d) => sum + d.zins, 0) / daten.darlehen.length).toFixed(2)}%, was im aktuellen Marktumfeld ${(daten.darlehen.reduce((sum, d) => sum + d.zins, 0) / daten.darlehen.length) > 3.7 ? "leicht überdurchschnittlich" : (daten.darlehen.reduce((sum, d) => sum + d.zins, 0) / daten.darlehen.length) < 3.0 ? "günstig" : "marktüblich"} ist.
-
-Die monatliche Gesamtbelastung von ${formatCurrency(daten.gesamtRate)} sollte in einem angemessenen Verhältnis zum verfügbaren Haushaltseinkommen stehen (idealerweise nicht mehr als 35-40%).
-
-Der Beleihungsauslauf (LTV) von ${daten.beleihungsauslauf.toFixed(1)}% ist ${daten.beleihungsauslauf > 80 ? "überdurchschnittlich hoch, was zu höheren Zinsen führen kann" : daten.beleihungsauslauf < 60 ? "günstig und führt zu besseren Zinskonditionen" : "im üblichen Rahmen"}.
-
-## 4. Empfehlungen
-Basierend auf den vorliegenden Daten ergeben sich folgende Empfehlungen:
-
-${daten.eigenkapitalQuote < 20 ? "- Prüfen Sie, ob Sie mehr Eigenkapital einbringen können, um die Eigenkapitalquote auf mindestens 20% zu erhöhen.\n" : ""}
-${(daten.darlehen.reduce((sum, d) => sum + d.tilgung, 0) / daten.darlehen.length) < 2.5 ? "- Erhöhen Sie die Tilgung auf mindestens 2,5%, um die Gesamtlaufzeit zu verkürzen.\n" : ""}
-${daten.beleihungsauslauf > 80 ? "- Verhandeln Sie mit mehreren Banken, um trotz des hohen Beleihungsauslaufs günstige Konditionen zu erhalten.\n" : ""}
-${daten.darlehen.some(d => d.zinsbindung < 10) ? "- Prüfen Sie längere Zinsbindungen, um von den aktuell noch vergleichsweise günstigen Zinsen zu profitieren.\n" : ""}
-- Vereinbaren Sie eine Sondertilgungsoption, um flexibel auf finanzielle Veränderungen reagieren zu können.
-${daten.eigenkapitalQuote < 10 ? "- Prüfen Sie zusätzliche Fördermittel (z.B. KfW) zur Optimierung der Finanzierungsstruktur.\n" : ""}
-
-Insgesamt erscheint die Finanzierung ${daten.eigenkapitalQuote < 15 || daten.beleihungsauslauf > 90 ? "risikoreich und sollte optimiert werden" : daten.eigenkapitalQuote > 25 && daten.beleihungsauslauf < 70 ? "solide strukturiert" : "grundsätzlich machbar, aber mit Optimierungspotenzial"}.
-</div>`;
-    } else {
-        // DeepSeek oder andere Provider
-        antwort = `<div class="p-4 bg-gray-50 border rounded whitespace-pre-line">
-# Plausibilitätsprüfung Ihrer Baufinanzierung
-
-## Standortanalyse
-${daten.ort ? `Standort: ${daten.ort}${daten.plz ? ` (PLZ ${daten.plz})` : ''}` : 'Keine Standortangabe vorhanden.'} 
-Region: ${regionName}
-Marktentwicklung: ${regionName === "München" || regionName === "Berlin" || regionName === "Hamburg" ? "Stark wachsender Markt" : regionName === "Frankfurt/Rhein-Main" || regionName === "Stuttgart" ? "Wachsender Markt" : "Stabiler Markt"}
-
-## Kaufpreisbewertung
-Objekttyp: ${daten.objekttyp || 'Keine Angabe'}
-${daten.baujahr ? `Baujahr: ${daten.baujahr}` : ''}
-Wohnfläche: ${daten.wohnflaeche} m²
-Kaufpreis: ${formatCurrency(daten.kaufpreis)} (${formatCurrency(preisProQm)}/m²)
-
-Der Quadratmeterpreis liegt im Vergleich zum regionalen Durchschnitt ${regionaleEinschaetzung} und ist als ${preisProQm > 4500 ? "sehr hoch" : preisProQm > 3500 ? "gehoben" : preisProQm > 2500 ? "durchschnittlich" : "moderat"} einzustufen.
-
-## Finanzierungsstruktur
-Eigenkapital: ${formatCurrency(daten.eigenkapital)} (${daten.eigenkapitalQuote.toFixed(1)}%)
-Darlehenssumme: ${formatCurrency(daten.kaufpreis - daten.eigenkapital)}
-Durchschnittlicher Zinssatz: ${(daten.darlehen.reduce((sum, d) => sum + d.zins, 0) / daten.darlehen.length).toFixed(2)}%
-Durchschnittliche Tilgung: ${(daten.darlehen.reduce((sum, d) => sum + d.tilgung, 0) / daten.darlehen.length).toFixed(2)}%
-Monatliche Rate: ${formatCurrency(daten.gesamtRate)}
-Beleihungsauslauf (LTV): ${daten.beleihungsauslauf.toFixed(1)}%
-
-Die Eigenkapitalquote ist ${daten.eigenkapitalQuote < 10 ? "kritisch niedrig" : daten.eigenkapitalQuote < 20 ? "niedrig" : daten.eigenkapitalQuote > 40 ? "sehr gut" : "angemessen"}.
-Der Beleihungsauslauf ist ${daten.beleihungsauslauf > 90 ? "sehr hoch (erhöhtes Risiko)" : daten.beleihungsauslauf > 80 ? "hoch" : daten.beleihungsauslauf < 60 ? "niedrig (günstige Konditionen)" : "normal"}.
-Der Zinssatz ist im aktuellen Marktumfeld ${(daten.darlehen.reduce((sum, d) => sum + d.zins, 0) / daten.darlehen.length) > 3.8 ? "überdurchschnittlich" : (daten.darlehen.reduce((sum, d) => sum + d.zins, 0) / daten.darlehen.length) < 3.2 ? "günstig" : "marktüblich"}.
-Die Tilgung ist ${(daten.darlehen.reduce((sum, d) => sum + d.tilgung, 0) / daten.darlehen.length) < 1.5 ? "zu niedrig" : (daten.darlehen.reduce((sum, d) => sum + d.tilgung, 0) / daten.darlehen.length) < 2.5 ? "niedrig" : (daten.darlehen.reduce((sum, d) => sum + d.tilgung, 0) / daten.darlehen.length) > 4 ? "sehr hoch" : "angemessen"}.
-
-## Risikoanalyse und Empfehlungen
-
-Risikofaktoren:
-${daten.eigenkapitalQuote < 15 ? "- Geringe Eigenkapitalquote\n" : ""}
-${daten.beleihungsauslauf > 80 ? "- Hoher Beleihungsauslauf\n" : ""}
-${(daten.darlehen.reduce((sum, d) => sum + d.tilgung, 0) / daten.darlehen.length) < 2.0 ? "- Niedrige Tilgungsrate\n" : ""}
-${daten.darlehen.some(d => d.zinsbindung < 8) ? "- Kurze Zinsbindung bei einigen Darlehen\n" : ""}
-
-Optimierungspotenzial:
-${daten.eigenkapitalQuote < 20 ? "- Eigenkapitalquote erhöhen (Ziel: min. 20%)\n" : ""}
-${(daten.darlehen.reduce((sum, d) => sum + d.tilgung, 0) / daten.darlehen.length) < 2.5 ? "- Tilgungsrate erhöhen (Empfehlung: min. 2,5%)\n" : ""}
-${daten.darlehen.some(d => d.zinsbindung < 10) ? "- Längere Zinsbindungen prüfen (Empfehlung: min. 10 Jahre)\n" : ""}
-${daten.beleihungsauslauf > 80 ? "- Alternative Angebote einholen, um trotz hohem LTV günstige Konditionen zu erhalten\n" : ""}
-- Sondertilgungsoptionen vereinbaren für mehr Flexibilität
-
-Plausibilitätsbewertung: Die Finanzierung ist insgesamt ${daten.eigenkapitalQuote < 15 || daten.beleihungsauslauf > 90 ? "mit höherem Risiko verbunden und sollte überarbeitet werden" : daten.eigenkapitalQuote > 25 && daten.beleihungsauslauf < 70 ? "gut strukturiert und erscheint nachhaltig" : "grundsätzlich tragfähig, weist aber Optimierungspotenzial auf"}.
-</div>`;
-    }
-    
-    return antwort;
-}
-
-// Formatierungsfunktion für Währungsbeträge
-function formatCurrency(value) {
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
-}
-
-// API-Integration für echte Marktdatenabfragen
-// Diese Funktion würde in einer Produktivversion verwendet werden,
-// um tatsächliche Marktdaten von externen APIs zu beziehen
-async function getExternalMarketData(endpoint, params, apiKey) {
-    try {
-        // API-Endpunkte Konfiguration
-        const API_ENDPOINTS = {
-            bodenrichtwerte: "https://api.example.com/bodenrichtwerte",
-            immobilienpreise: "https://api.example.com/immobilienpreise",
-            zinskonditionen: "https://api.example.com/zinskonditionen"
-        };
-        
-        // Echten API-Aufruf durchführen
-        const url = API_ENDPOINTS[endpoint];
-        if (!url) throw new Error(`Unbekannter API-Endpunkt: ${endpoint}`);
-        
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify(params)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`API-Fehler: ${response.status} ${response.statusText}`);
-        }
-        
-        return await response.json();
-    } catch (error) {
-        console.error("Fehler bei API-Abfrage:", error);
-        // Fallback auf simulierte Daten im Fehlerfall
-        return null;
-    }
-}// marktdaten-plausibilisierung.js
+// marktdaten-plausibilisierung.js
 // Erweitert den BauFi-Rechner um Funktionen zur Plausibilisierung mit Marktdaten
+// Diese Version enthält keine API-Integration, da diese nun in api-integration.js zentralisiert ist
 
 document.addEventListener('DOMContentLoaded', function() {
     // Plausibilisierungsbereich initialisieren
@@ -216,17 +41,7 @@ function createPlausibilisierungsHTML() {
         </p>
     </div>
     
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="border rounded p-4 hover:shadow-md transition cursor-pointer bg-white" id="api-plausibilisierung">
-            <div class="flex items-center mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span class="font-medium">Eigene API nutzen</span>
-            </div>
-            <p class="text-sm text-gray-600">Verwenden Sie Ihren eigenen API-Schlüssel für OpenAI oder DeepSeek, um eine KI-basierte Plausibilitätsprüfung durchzuführen.</p>
-        </div>
-        
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div class="border rounded p-4 hover:shadow-md transition cursor-pointer bg-white" id="bodenrichtwert-plausibilisierung">
             <div class="flex items-center mb-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -250,47 +65,6 @@ function createPlausibilisierungsHTML() {
     
     <div id="plausibilisierung-container" class="hidden">
         <!-- Container für die jeweilige Plausibilisierungsmethode -->
-        
-        <!-- API-Plausibilisierung -->
-        <div id="api-container" class="hidden">
-            <h3 class="text-lg font-semibold mb-2">KI-basierte Plausibilitätsprüfung</h3>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div class="border rounded p-4 cursor-pointer" id="openai-provider">
-                    <div class="flex items-center mb-2">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/180px-ChatGPT_logo.svg.png" alt="OpenAI Logo" class="h-6 w-6 mr-2">
-                        <span class="font-medium">OpenAI (GPT-4)</span>
-                    </div>
-                    <p class="text-sm text-gray-600">Nutzen Sie GPT-4 für eine detaillierte Analyse Ihrer Baufinanzierung.</p>
-                </div>
-                
-                <div class="border rounded p-4 cursor-pointer" id="deepseek-provider">
-                    <div class="flex items-center mb-2">
-                        <img src="https://www.deepseek.com/favicon.ico" alt="DeepSeek Logo" class="h-6 w-6 mr-2">
-                        <span class="font-medium">DeepSeek</span>
-                    </div>
-                    <p class="text-sm text-gray-600">DeepSeek's KI bewertet Ihre Immobilienfinanzierung und gibt Empfehlungen.</p>
-                </div>
-            </div>
-            
-            <div id="api-key-input" class="mb-4 hidden">
-                <label class="block text-sm font-medium mb-1" id="selected-provider-label">API-Schlüssel</label>
-                <div class="flex items-center">
-                    <input type="password" id="api-key" class="w-full p-2 border rounded" placeholder="Ihr API-Schlüssel">
-                    <button id="validate-api-key" class="ml-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Validieren</button>
-                </div>
-                <p class="text-xs text-gray-500 mt-1">Ihr API-Schlüssel wird nur für diese Anfrage verwendet und nicht gespeichert.</p>
-            </div>
-            
-            <button id="run-api-analysis" class="w-full py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700 transition hidden">
-                KI-Analyse starten
-            </button>
-            
-            <div id="api-result" class="mt-4 hidden">
-                <h4 class="font-medium mb-2">Analyseergebnis</h4>
-                <div id="api-result-content" class="p-4 bg-gray-50 border rounded"></div>
-            </div>
-        </div>
         
         <!-- Bodenrichtwert-Plausibilisierung -->
         <div id="bodenrichtwert-container" class="hidden">
@@ -372,10 +146,6 @@ function createPlausibilisierungsHTML() {
 // Event-Listener für Plausibilisierungsfunktionen
 function setupPlausibilisierungEvents() {
     // Klick auf die Plausibilisierungsmethoden
-    document.getElementById('api-plausibilisierung').addEventListener('click', () => {
-        openPlausibilisierungsTool('api-container');
-    });
-    
     document.getElementById('bodenrichtwert-plausibilisierung').addEventListener('click', () => {
         openPlausibilisierungsTool('bodenrichtwert-container');
     });
@@ -383,9 +153,6 @@ function setupPlausibilisierungEvents() {
     document.getElementById('finanzierung-plausibilisierung').addEventListener('click', () => {
         openPlausibilisierungsTool('finanzierung-container');
     });
-    
-    // API-Plausibilisierung
-    setupApiPlausibilisierung();
     
     // Bodenrichtwert-Plausibilisierung
     document.getElementById('check-bodenrichtwert').addEventListener('click', checkBodenrichtwert);
@@ -401,126 +168,11 @@ function openPlausibilisierungsTool(containerId) {
     plausibilisierungContainer.classList.remove('hidden');
     
     // Alle Tool-Container ausblenden
-    document.getElementById('api-container').classList.add('hidden');
     document.getElementById('bodenrichtwert-container').classList.add('hidden');
     document.getElementById('finanzierung-container').classList.add('hidden');
     
     // Gewählten Container anzeigen
     document.getElementById(containerId).classList.remove('hidden');
-}
-
-// API-Plausibilisierung einrichten
-function setupApiPlausibilisierung() {
-    let selectedProvider = null;
-    
-    // Provider-Auswahl
-    document.getElementById('openai-provider').addEventListener('click', () => {
-        selectProvider('openai');
-    });
-    
-    document.getElementById('deepseek-provider').addEventListener('click', () => {
-        selectProvider('deepseek');
-    });
-    
-    // Provider auswählen
-    function selectProvider(providerId) {
-        selectedProvider = providerId;
-        
-        // UI aktualisieren
-        document.querySelectorAll('#openai-provider, #deepseek-provider').forEach(el => {
-            el.classList.remove('border-blue-500', 'bg-blue-50');
-        });
-        
-        document.getElementById(`${providerId}-provider`).classList.add('border-blue-500', 'bg-blue-50');
-        document.getElementById('selected-provider-label').textContent = 
-            providerId === 'openai' ? 'OpenAI API-Schlüssel' : 'DeepSeek API-Schlüssel';
-            
-        document.getElementById('api-key-input').classList.remove('hidden');
-        document.getElementById('run-api-analysis').classList.add('hidden');
-    }
-    
-    // API-Schlüssel validieren
-    document.getElementById('validate-api-key').addEventListener('click', validateApiKey);
-    
-    // API-Analyse starten
-    document.getElementById('run-api-analysis').addEventListener('click', runApiAnalysis);
-    
-    // API-Schlüssel validieren
-    async function validateApiKey() {
-        if (!selectedProvider) {
-            alert('Bitte wählen Sie einen API-Provider aus.');
-            return;
-        }
-        
-        const apiKey = document.getElementById('api-key').value.trim();
-        if (!apiKey) {
-            alert('Bitte geben Sie Ihren API-Schlüssel ein.');
-            return;
-        }
-        
-        const validateButton = document.getElementById('validate-api-key');
-        validateButton.textContent = 'Prüfe...';
-        validateButton.disabled = true;
-        
-        try {
-            // Simulierte API-Validierung (in einer realen Anwendung würde hier eine echte Anfrage gesendet)
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // API-Schlüssel als gültig markieren (für Demo-Zwecke)
-            const isValid = true;
-            
-            if (isValid) {
-                document.getElementById('api-key').classList.add('border-green-500');
-                document.getElementById('run-api-analysis').classList.remove('hidden');
-            } else {
-                document.getElementById('api-key').classList.add('border-red-500');
-                alert('Der API-Schlüssel ist ungültig oder hat nicht die erforderlichen Berechtigungen.');
-            }
-        } catch (error) {
-            console.error('Fehler bei der API-Schlüssel-Validierung:', error);
-            alert('Fehler bei der Validierung. Bitte versuchen Sie es erneut.');
-        } finally {
-            validateButton.textContent = 'Validieren';
-            validateButton.disabled = false;
-        }
-    }
-    
-    // API-Analyse durchführen
-    async function runApiAnalysis() {
-        const apiKey = document.getElementById('api-key').value.trim();
-        if (!apiKey) {
-            alert('Bitte geben Sie einen gültigen API-Schlüssel ein.');
-            return;
-        }
-        
-        const analyseButton = document.getElementById('run-api-analysis');
-        analyseButton.textContent = 'Analysiere...';
-        analyseButton.disabled = true;
-        
-        try {
-            // Daten für die Analyse sammeln
-            const analyseDaten = sammleFinanzierungsdaten();
-            
-            // Simulierte API-Anfrage
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            // Simulierte Antwort generieren
-            const antwort = generiereSimulierteApiAntwort(analyseDaten, selectedProvider);
-            
-            // Ergebnis anzeigen
-            document.getElementById('api-result').classList.remove('hidden');
-            document.getElementById('api-result-content').innerHTML = antwort;
-            
-            // Zu den Ergebnissen scrollen
-            document.getElementById('api-result').scrollIntoView({ behavior: 'smooth' });
-        } catch (error) {
-            console.error('Fehler bei der API-Analyse:', error);
-            alert('Fehler bei der Analyse. Bitte versuchen Sie es erneut.');
-        } finally {
-            analyseButton.textContent = 'KI-Analyse starten';
-            analyseButton.disabled = false;
-        }
-    }
 }
 
 // Bodenrichtwert prüfen
@@ -634,30 +286,66 @@ function sammleFinanzierungsdaten() {
     const darlehenContainer = document.getElementById('darlehen-container');
     const darlehenBlocks = darlehenContainer?.querySelectorAll('.darlehen-block') || [];
     
-    const darlehen = [];
-    darlehenBlocks.forEach((block, index) => {
-        const betrag = parseFloat(block.querySelector('.darlehen-betrag')?.value || '0');
-        const zins = parseFloat(block.querySelector('.darlehen-zins')?.value || '0');
-        const tilgung = parseFloat(block.querySelector('.darlehen-tilgung')?.value || '0');
-        const zinsbindung = parseFloat(block.querySelector('.darlehen-zinsbindung')?.value || '0');
+    let darlehen = [];
+    
+    // Wenn neue Multi-Darlehen-Struktur vorhanden ist
+    if (darlehenBlocks.length > 0) {
+        darlehenBlocks.forEach((block, index) => {
+            const betrag = parseFloat(block.querySelector('.darlehen-betrag')?.value || '0');
+            const zins = parseFloat(block.querySelector('.darlehen-zins')?.value || '0');
+            const tilgung = parseFloat(block.querySelector('.darlehen-tilgung')?.value || '0');
+            const zinsbindung = parseFloat(block.querySelector('.darlehen-zinsbindung')?.value || '0');
+            
+            const rate = parseFloat(block.querySelector('.darlehen-rate')?.textContent.replace(/[^\d,]/g, '').replace(',', '.') || '0');
+            
+            darlehen.push({
+                nr: index + 1,
+                betrag,
+                zins,
+                tilgung,
+                zinsbindung,
+                rate
+            });
+        });
+    } else {
+        // Fallback auf alte Struktur, wenn Multi-Darlehen nicht vorhanden
+        const darlehensbetrag = parseFloat(document.getElementById('darlehensbetrag')?.value || '0');
+        const zinssatz = parseFloat(document.getElementById('zinssatz')?.value || '0');
+        const tilgungssatz = parseFloat(document.getElementById('tilgungssatz')?.value || '0');
         
-        const rate = parseFloat(block.querySelector('.darlehen-rate')?.textContent.replace(/[^\d,]/g, '').replace(',', '.') || '0');
+        // Monatliche Rate aus dem Ergebnisbereich extrahieren
+        const monatlicheRateText = document.getElementById('monatlicheRate')?.textContent || '0 €';
+        const monatlicheRate = parseFloat(monatlicheRateText.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
         
         darlehen.push({
-            nr: index + 1,
-            betrag,
-            zins,
-            tilgung,
-            zinsbindung,
-            rate
+            nr: 1,
+            betrag: darlehensbetrag,
+            zins: zinssatz,
+            tilgung: tilgungssatz,
+            zinsbindung: 10, // Annahme: 10 Jahre Zinsbindung
+            rate: monatlicheRate
         });
-    });
+    }
     
     // Gesamtrate
-    const gesamtRate = parseFloat(document.getElementById('gesamt-rate')?.textContent.replace(/[^\d,]/g, '').replace(',', '.') || '0');
+    let gesamtRate = 0;
+    if (darlehen.length > 0) {
+        gesamtRate = darlehen.reduce((sum, d) => sum + d.rate, 0);
+    } else {
+        const monatlicheRateText = document.getElementById('monatlicheRate')?.textContent || '0 €';
+        gesamtRate = parseFloat(monatlicheRateText.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+    }
     
     // Beleihungsauslauf
-    const beleihungsauslauf = parseFloat(document.getElementById('beleihungsauslauf')?.textContent.replace(/[^0-9.,]/g, '') || '0');
+    let beleihungsauslauf = 0;
+    const darlehensSumme = darlehen.reduce((sum, d) => sum + d.betrag, 0);
+    
+    if (kaufpreis > 0) {
+        beleihungsauslauf = (darlehensSumme / kaufpreis) * 100;
+    } else {
+        // Wenn kein Kaufpreis angegeben ist, nehmen wir an, dass der Darlehensbetrag etwa 80% des Kaufpreises entspricht
+        beleihungsauslauf = 80;
+    }
     
     return {
         plz,
@@ -673,4 +361,392 @@ function sammleFinanzierungsdaten() {
         gesamtRate,
         beleihungsauslauf
     };
+}
+
+// Simulierte Bodenrichtwert-Daten generieren
+function generiereSimulierteBodenrichtwertDaten(plz) {
+    // In einer echten Anwendung würden hier Daten von einer API abgerufen
+    // Für die Demo generieren wir plausible Werte basierend auf der PLZ
+    
+    // Basis-Werte nach Regionen
+    const plzPrefix = plz.substring(0, 1);
+    let basiswert = 0;
+    let plzFaktor = 1.0;
+    
+    // Grobe regionale Unterschiede basierend auf der ersten Ziffer der PLZ
+    switch (plzPrefix) {
+        case '0': // Dresden, Leipzig etc.
+            basiswert = 250; plzFaktor = 1.0; break;
+        case '1': // Berlin
+            basiswert = 500; plzFaktor = 1.4; break;
+        case '2': // Hamburg
+            basiswert = 450; plzFaktor = 1.2; break;
+        case '3': // Hannover
+            basiswert = 280; plzFaktor = 0.9; break;
+        case '4': // Ruhrgebiet
+            basiswert = 300; plzFaktor = 0.95; break;
+        case '5': // Köln, Bonn
+            basiswert = 350; plzFaktor = 1.1; break;
+        case '6': // Frankfurt
+            basiswert = 380; plzFaktor = 1.2; break;
+        case '7': // Stuttgart
+            basiswert = 400; plzFaktor = 1.15; break;
+        case '8': // München
+            basiswert = 600; plzFaktor = 1.5; break;
+        case '9': // Nürnberg
+            basiswert = 320; plzFaktor = 1.0; break;
+        default:
+            basiswert = 300; plzFaktor = 1.0;
+    }
+    
+    // Zufällige Variation für realistischere Werte
+    const variation = 0.85 + (Math.random() * 0.3); // 0.85 bis 1.15
+    
+    // Berechnete Werte
+    const bodenrichtwert = Math.round(basiswert * variation);
+    const durchschnittspreisQm = Math.round(basiswert * plzFaktor * 10 * variation);
+    const preisspanneMin = Math.round(durchschnittspreisQm * 0.85);
+    const preisspanneMax = Math.round(durchschnittspreisQm * 1.15);
+    
+    // Preistrend (Wertsteigerung pro Jahr)
+    const preistrend = (2 + Math.random() * 3).toFixed(1); // 2% bis 5%
+    
+    // Kaufpreisbewertung im Vergleich zu einem angenommenen Kaufpreis
+    // In einer echten Anwendung würde der tatsächliche Kaufpreis verwendet
+    const kaufpreis = parseFloat(document.getElementById('kaufpreis')?.value || '0');
+    const wohnflaeche = parseFloat(document.getElementById('wohnflaeche')?.value || '0');
+    
+    let kaufpreisBewertung = 'Marktgerecht';
+    if (wohnflaeche > 0 && kaufpreis > 0) {
+        const preisProQm = kaufpreis / wohnflaeche;
+        
+        if (preisProQm < preisspanneMin) {
+            kaufpreisBewertung = 'Günstig';
+        } else if (preisProQm > preisspanneMax) {
+            kaufpreisBewertung = 'Teuer';
+        }
+    }
+    
+    return {
+        bodenrichtwert,
+        durchschnittspreisQm,
+        preisspanneMin,
+        preisspanneMax,
+        preistrend,
+        kaufpreisBewertung
+    };
+}
+
+// Bewertungstext für Bodenrichtwerte generieren
+function generiereBodenrichtwertBewertung(daten) {
+    // Kaufpreis aus dem Formular
+    const kaufpreis = parseFloat(document.getElementById('kaufpreis')?.value || '0');
+    const wohnflaeche = parseFloat(document.getElementById('wohnflaeche')?.value || '0');
+    const preisProQm = wohnflaeche > 0 ? kaufpreis / wohnflaeche : 0;
+    
+    let bewertungsClass = '';
+    let bewertungsText = '';
+    
+    if (preisProQm < daten.preisspanneMin) {
+        bewertungsClass = 'bg-green-50 border-green-500 text-green-800';
+        bewertungsText = `
+            <h4 class="font-medium mb-2 text-green-800">Günstiger als der Marktdurchschnitt</h4>
+            <p>Der Kaufpreis von ${formatCurrency(preisProQm)}/m² liegt unter dem durchschnittlichen Preisniveau für vergleichbare Objekte in der Region (${formatCurrency(daten.durchschnittspreisQm)}/m²).</p>
+            <p class="mt-2">Mögliche Gründe könnten sein:</p>
+            <ul class="list-disc pl-5 mt-1">
+                <li>Besonders günstiges Angebot oder Verhandlungserfolg</li>
+                <li>Renovierungs- oder Modernisierungsbedarf</li>
+                <li>Ungünstige Lage innerhalb des Stadtteils</li>
+                <li>Besondere Objekteigenschaften (z.B. ungünstiger Grundriss)</li>
+            </ul>
+            <p class="mt-2">Prüfen Sie genau, ob versteckte Mängel oder Nachteile die Ursache für den günstigen Preis sein könnten.</p>
+        `;
+    } else if (preisProQm > daten.preisspanneMax) {
+        bewertungsClass = 'bg-red-50 border-red-500 text-red-800';
+        bewertungsText = `
+            <h4 class="font-medium mb-2 text-red-800">Teurer als der Marktdurchschnitt</h4>
+            <p>Der Kaufpreis von ${formatCurrency(preisProQm)}/m² liegt über dem durchschnittlichen Preisniveau für vergleichbare Objekte in der Region (${formatCurrency(daten.durchschnittspreisQm)}/m²).</p>
+            <p class="mt-2">Mögliche Gründe könnten sein:</p>
+            <ul class="list-disc pl-5 mt-1">
+                <li>Überdurchschnittliche Ausstattung oder Qualität</li>
+                <li>Besonders gefragte Mikrolage</li>
+                <li>Kürzlich durchgeführte Modernisierungen</li>
+                <li>Energetisch optimiertes Gebäude</li>
+                <li>Besondere Ausstattungsmerkmale (z.B. Smart Home, hochwertige Küche)</li>
+            </ul>
+            <p class="mt-2">Prüfen Sie, ob die Vorteile des Objekts den höheren Preis rechtfertigen.</p>
+        `;
+    } else {
+        bewertungsClass = 'bg-blue-50 border-blue-500 text-blue-800';
+        bewertungsText = `
+            <h4 class="font-medium mb-2 text-blue-800">Marktgerechter Preis</h4>
+            <p>Der Kaufpreis von ${formatCurrency(preisProQm)}/m² entspricht dem durchschnittlichen Preisniveau für vergleichbare Objekte in der Region (${formatCurrency(daten.durchschnittspreisQm)}/m²).</p>
+            <p class="mt-2">Der Preis bewegt sich innerhalb der für diese Region typischen Preisspanne von ${formatCurrency(daten.preisspanneMin)}/m² bis ${formatCurrency(daten.preisspanneMax)}/m².</p>
+            <p class="mt-2">Die Immobilienpreise in dieser Region haben sich in den letzten Jahren im Durchschnitt um ${daten.preistrend}% pro Jahr verändert.</p>
+        `;
+    }
+    
+    // Zusätzliche Prognose für die Zukunft
+    const extraInfo = `
+        <div class="mt-4 ${bewertungsClass} p-3 rounded">
+            <h4 class="font-medium mb-1">Prognose für Ihre Region</h4>
+            <p>Bei einem fortgesetzten Preistrend von ${daten.preistrend}% pro Jahr könnte der Durchschnittspreis in 5 Jahren bei etwa ${formatCurrency(daten.durchschnittspreisQm * Math.pow(1 + daten.preistrend/100, 5))}/m² liegen.</p>
+        </div>
+    `;
+    
+    return `<div class="${bewertungsClass} p-4 rounded">${bewertungsText}</div>${extraInfo}`;
+}
+
+// Simulierte Marktkonditionen generieren
+function generiereSimulierteMarktkonditionen(finanzierungsDaten) {
+    // In einer echten Anwendung würden hier aktuelle Konditionen von einer API abgerufen
+    // Für die Demo generieren wir plausible Werte
+    
+    // Aktueller durchschnittlicher Zinssatz basierend auf Beleihungsauslauf
+    let durchschnittZins = 3.3; // Basis-Zinssatz
+    
+    // Anpassung nach Beleihungsauslauf
+    if (finanzierungsDaten.beleihungsauslauf > 80) {
+        durchschnittZins += 0.5; // Höheres Risiko = höherer Zins
+    } else if (finanzierungsDaten.beleihungsauslauf < 60) {
+        durchschnittZins -= 0.2; // Geringeres Risiko = niedrigerer Zins
+    }
+    
+    // Kleine zufällige Schwankung
+    durchschnittZins += (Math.random() * 0.4) - 0.2;
+    durchschnittZins = parseFloat(durchschnittZins.toFixed(1));
+    
+    // Durchschnittliche Tilgung
+    const empfohleneTilgung = 3.0;
+    
+    // Belastbarkeitsquote (Rate im Verhältnis zum angenommenen Einkommen)
+    // Hier simulieren wir ein angenommenes Einkommen
+    const angenommenesMonatseinkommenNetto = finanzierungsDaten.gesamtRate * 3; // Rate sollte max. 1/3 des Nettoeinkommens sein
+    const belastbarkeitsquote = (finanzierungsDaten.gesamtRate / angenommenesMonatseinkommenNetto) * 100;
+    
+    // Vergleichstexte
+    let zinsVergleich = '';
+    let tilgungVergleich = '';
+    let belastbarkeitHinweis = '';
+    
+    // Zins bewerten
+    const durchschnittZinsDerDarlehen = finanzierungsDaten.darlehen.length > 0 
+        ? finanzierungsDaten.darlehen.reduce((sum, d) => sum + d.zins, 0) / finanzierungsDaten.darlehen.length
+        : 0;
+    
+    if (durchschnittZinsDerDarlehen > durchschnittZins + 0.5) {
+        zinsVergleich = `${(durchschnittZinsDerDarlehen - durchschnittZins).toFixed(1)}% über Durchschnitt`;
+    } else if (durchschnittZinsDerDarlehen < durchschnittZins - 0.5) {
+        zinsVergleich = `${(durchschnittZins - durchschnittZinsDerDarlehen).toFixed(1)}% unter Durchschnitt`;
+    } else {
+        zinsVergleich = 'Im Marktdurchschnitt';
+    }
+    
+    // Tilgung bewerten
+    const durchschnittTilgungDerDarlehen = finanzierungsDaten.darlehen.length > 0 
+        ? finanzierungsDaten.darlehen.reduce((sum, d) => sum + d.tilgung, 0) / finanzierungsDaten.darlehen.length
+        : 0;
+    
+    if (durchschnittTilgungDerDarlehen < 2.0) {
+        tilgungVergleich = 'Zu niedrig';
+    } else if (durchschnittTilgungDerDarlehen < empfohleneTilgung) {
+        tilgungVergleich = 'Etwas niedrig';
+    } else if (durchschnittTilgungDerDarlehen > empfohleneTilgung + 1) {
+        tilgungVergleich = 'Sehr gut';
+    } else {
+        tilgungVergleich = 'Angemessen';
+    }
+    
+    // Belastbarkeit bewerten
+    if (belastbarkeitsquote > 40) {
+        belastbarkeitHinweis = 'Kritisch (>40%)';
+    } else if (belastbarkeitsquote > 35) {
+        belastbarkeitHinweis = 'Grenzwertig (>35%)';
+    } else if (belastbarkeitsquote > 30) {
+        belastbarkeitHinweis = 'Akzeptabel (>30%)';
+    } else {
+        belastbarkeitHinweis = 'Gut (<30%)';
+    }
+    
+    // CSS-Klassen für die farbliche Markierung
+    let zinsClass = 'text-xl font-bold';
+    let tilgungClass = 'text-xl font-bold';
+    let belastbarkeitClass = 'text-xl font-bold';
+    
+    if (durchschnittZinsDerDarlehen > durchschnittZins + 0.5) {
+        zinsClass += ' text-red-600';
+    } else if (durchschnittZinsDerDarlehen < durchschnittZins - 0.5) {
+        zinsClass += ' text-green-600';
+    }
+    
+    if (durchschnittTilgungDerDarlehen < 2.0) {
+        tilgungClass += ' text-red-600';
+    } else if (durchschnittTilgungDerDarlehen > empfohleneTilgung) {
+        tilgungClass += ' text-green-600';
+    }
+    
+    if (belastbarkeitsquote > 40) {
+        belastbarkeitClass += ' text-red-600';
+    } else if (belastbarkeitsquote < 30) {
+        belastbarkeitClass += ' text-green-600';
+    } else {
+        belastbarkeitClass += ' text-yellow-600';
+    }
+    
+    return {
+        durchschnittZins,
+        empfohleneTilgung,
+        belastbarkeitsquote: parseFloat(belastbarkeitsquote.toFixed(1)),
+        zinsVergleich,
+        tilgungVergleich,
+        belastbarkeitHinweis,
+        zinsClass,
+        tilgungClass,
+        belastbarkeitClass,
+        durchschnittZinsDerDarlehen,
+        durchschnittTilgungDerDarlehen
+    };
+}
+
+// Bewertungstext für Finanzierungskonditionen generieren
+function generiereFinanzierungsbewertung(marktkonditionen, finanzierungsDaten) {
+    // Bewertungsklasse bestimmen
+    let bewertungsClass = 'bg-blue-50 border-blue-500 text-blue-800';
+    let gesamtBewertung = 'Gute Finanzierungsstruktur';
+    let risikoLevel = 'niedrig';
+    
+    // Risikopunkte berechnen
+    let risikoPunkte = 0;
+    
+    // Zins bewerten
+    if (marktkonditionen.durchschnittZinsDerDarlehen > marktkonditionen.durchschnittZins + 0.8) {
+        risikoPunkte += 2; // Deutlich zu hohe Zinsen
+    } else if (marktkonditionen.durchschnittZinsDerDarlehen > marktkonditionen.durchschnittZins + 0.3) {
+        risikoPunkte += 1; // Etwas zu hohe Zinsen
+    }
+    
+    // Tilgung bewerten
+    if (marktkonditionen.durchschnittTilgungDerDarlehen < 1.5) {
+        risikoPunkte += 3; // Viel zu niedrige Tilgung
+    } else if (marktkonditionen.durchschnittTilgungDerDarlehen < 2) {
+        risikoPunkte += 2; // Zu niedrige Tilgung
+    } else if (marktkonditionen.durchschnittTilgungDerDarlehen < marktkonditionen.empfohleneTilgung - 0.5) {
+        risikoPunkte += 1; // Etwas zu niedrige Tilgung
+    }
+    
+    // Belastbarkeit bewerten
+    if (marktkonditionen.belastbarkeitsquote > 40) {
+        risikoPunkte += 3; // Kritische Belastung
+    } else if (marktkonditionen.belastbarkeitsquote > 35) {
+        risikoPunkte += 2; // Hohe Belastung
+    } else if (marktkonditionen.belastbarkeitsquote > 30) {
+        risikoPunkte += 1; // Grenzwertige Belastung
+    }
+    
+    // Beleihungsauslauf bewerten
+    if (finanzierungsDaten.beleihungsauslauf > 90) {
+        risikoPunkte += 3; // Sehr hoher Beleihungsauslauf
+    } else if (finanzierungsDaten.beleihungsauslauf > 80) {
+        risikoPunkte += 2; // Hoher Beleihungsauslauf
+    } else if (finanzierungsDaten.beleihungsauslauf > 70) {
+        risikoPunkte += 1; // Erhöhter Beleihungsauslauf
+    }
+    
+    // Gesamtbewertung basierend auf Risikopunkten
+    if (risikoPunkte >= 6) {
+        bewertungsClass = 'bg-red-50 border-red-500 text-red-800';
+        gesamtBewertung = 'Risikoreiche Finanzierungsstruktur';
+        risikoLevel = 'hoch';
+    } else if (risikoPunkte >= 3) {
+        bewertungsClass = 'bg-yellow-50 border-yellow-500 text-yellow-800';
+        gesamtBewertung = 'Finanzierungsstruktur mit Optimierungspotenzial';
+        risikoLevel = 'mittel';
+    }
+    
+    // Bewertungstext generieren
+    const bewertungsText = `
+        <h4 class="font-medium mb-2">${gesamtBewertung}</h4>
+        <p>Ihre Finanzierungsstruktur weist ein <strong>${risikoLevel}es Risiko</strong> auf. Die folgenden Aspekte wurden bewertet:</p>
+        
+        <ul class="list-disc pl-5 mt-2">
+            <li>
+                <strong>Zinssatz:</strong> 
+                ${marktkonditionen.durchschnittZinsDerDarlehen.toFixed(1)}% 
+                (${marktkonditionen.zinsVergleich})
+            </li>
+            <li>
+                <strong>Tilgungssatz:</strong> 
+                ${marktkonditionen.durchschnittTilgungDerDarlehen.toFixed(1)}% 
+                (${marktkonditionen.tilgungVergleich} bei empfohlenen ${marktkonditionen.empfohleneTilgung}%)
+            </li>
+            <li>
+                <strong>Belastbarkeitsquote:</strong> 
+                ${marktkonditionen.belastbarkeitsquote}% 
+                (${marktkonditionen.belastbarkeitHinweis})
+            </li>
+            <li>
+                <strong>Beleihungsauslauf:</strong> 
+                ${finanzierungsDaten.beleihungsauslauf.toFixed(1)}% 
+                (${finanzierungsDaten.beleihungsauslauf > 80 ? 'Erhöht' : 'Akzeptabel'})
+            </li>
+        </ul>
+    `;
+    
+    // Handlungsempfehlungen basierend auf Risikopunkten
+    let empfehlungen = '';
+    
+    if (risikoPunkte > 0) {
+        empfehlungen = '<h4 class="font-medium mt-3 mb-2">Handlungsempfehlungen:</h4><ul class="list-disc pl-5">';
+        
+        if (marktkonditionen.durchschnittZinsDerDarlehen > marktkonditionen.durchschnittZins + 0.3) {
+            empfehlungen += `
+                <li>Holen Sie weitere Finanzierungsangebote ein, um bessere Zinskonditionen zu erhalten.</li>
+            `;
+        }
+        
+        if (marktkonditionen.durchschnittTilgungDerDarlehen < marktkonditionen.empfohleneTilgung - 0.5) {
+            empfehlungen += `
+                <li>Erhöhen Sie den Tilgungssatz auf mindestens ${Math.max(2, marktkonditionen.empfohleneTilgung - 0.5).toFixed(1)}% um die Gesamtlaufzeit und Zinsbelastung zu reduzieren.</li>
+            `;
+        }
+        
+        if (marktkonditionen.belastbarkeitsquote > 35) {
+            empfehlungen += `
+                <li>Die monatliche Belastung ist im Verhältnis zum angenommenen Einkommen sehr hoch. Erhöhen Sie das Eigenkapital oder reduzieren Sie die Darlehenssumme.</li>
+            `;
+        }
+        
+        if (finanzierungsDaten.beleihungsauslauf > 80) {
+            empfehlungen += `
+                <li>Der Beleihungsauslauf liegt über 80%, was zu höheren Zinsen führt. Versuchen Sie, mehr Eigenkapital einzubringen.</li>
+            `;
+        }
+        
+        if (finanzierungsDaten.darlehen.some(d => d.zinsbindung < 10)) {
+            empfehlungen += `
+                <li>Prüfen Sie, ob eine längere Zinsbindung (mind. 10 Jahre) sinnvoll ist, um sich gegen steigende Zinsen abzusichern.</li>
+            `;
+        }
+        
+        empfehlungen += '</ul>';
+    }
+    
+    return `<div class="${bewertungsClass} p-4 rounded">${bewertungsText}${empfehlungen}</div>`;
+}
+
+// Formatierungsfunktion für Währungsbeträge
+function formatCurrency(value) {
+    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
+}
+
+// API-Integration für echte Marktdatenabfragen
+// Diese Funktion würde in einer Produktivversion verwendet werden,
+// wenn der globale API-Schlüssel verfügbar ist
+function checkForGlobalApiKey() {
+    document.addEventListener('apiKeyValidated', function(event) {
+        console.log('API-Schlüssel wurde validiert, kann für Marktdatenabfragen verwendet werden');
+        // Hier könnte man automatisch Marktdaten abrufen oder UI-Elemente aktivieren
+    });
+    
+    return window.globalApiKey || null;
 }
