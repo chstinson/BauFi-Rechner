@@ -3,15 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baufinanzierungsrechner</title>
+    <title>Baufinanzierungsrechner mit KI-Plausibilisierung</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto p-4 max-w-6xl">
-        <h1 class="text-3xl font-bold text-center my-6">Baufinanzierungsrechner</h1>
+        <h1 class="text-3xl font-bold text-center my-6">Baufinanzierungsrechner mit KI-Plausibilisierung</h1>
         
         <div class="bg-white rounded-lg shadow-md p-6">
+            <!-- Standortdaten -->
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-4">Standortdaten</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">PLZ</label>
+                        <input type="text" id="plz" class="w-full p-2 border rounded" placeholder="Postleitzahl">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Ort</label>
+                        <input type="text" id="ort" class="w-full p-2 border rounded" placeholder="Ort">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Objekttyp</label>
+                        <select id="objekttyp" class="w-full p-2 border rounded">
+                            <option value="Einfamilienhaus">Einfamilienhaus</option>
+                            <option value="Eigentumswohnung">Eigentumswohnung</option>
+                            <option value="Mehrfamilienhaus">Mehrfamilienhaus</option>
+                            <option value="Grundstück">Grundstück</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Wohnfläche in m²</label>
+                        <input type="number" id="wohnflaeche" class="w-full p-2 border rounded" value="120">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Darlehensdaten -->
             <div class="mb-6">
                 <h2 class="text-xl font-semibold mb-4">Darlehensdaten</h2>
                 
@@ -65,6 +94,7 @@
                 </div>
             </div>
             
+            <!-- Ergebnisse -->
             <div class="bg-gray-100 p-4 rounded-lg mb-6">
                 <h2 class="text-xl font-semibold mb-4">Ergebnisse</h2>
                 
@@ -92,10 +122,12 @@
                 </div>
             </div>
             
+            <!-- Tilgungsplan Button -->
             <button id="showTilgungsplan" class="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
                 Tilgungsplan anzeigen
             </button>
             
+            <!-- Tilgungsplan Container -->
             <div id="tilgungsplanContainer" class="mt-6 hidden">
                 <h2 class="text-xl font-semibold mb-4">Tilgungsplan</h2>
                 <div class="overflow-x-auto">
