@@ -355,3 +355,46 @@ function formatPercent(value) {
         maximumFractionDigits: 2 
     }).format(value / 100);
 }
+
+// Funktion zum Ein-/Ausklappen des API-Bereichs
+// Diese Funktion muss im globalen Bereich definiert sein
+function toggleApiSection() {
+    const content = document.getElementById('api-content');
+    const icon = document.getElementById('api-toggle-icon');
+    
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+    } else {
+        content.style.display = 'none';
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+    }
+}
+
+// Ergänzen Sie diese Funktion in Ihrer main.js oder fügen Sie sie am Ende hinzu
+
+// Initialisierung ergänzen
+document.addEventListener('DOMContentLoaded', function() {
+    // Existierende Initialisierungen...
+    
+    // API-Toggle initialisieren
+    const apiToggleHeader = document.getElementById('api-toggle-header');
+    if (apiToggleHeader) {
+        apiToggleHeader.addEventListener('click', toggleApiSection);
+    }
+    
+    // Beim Laden der Seite prüfen, ob ein API-Bereich ausgeblendet werden soll
+    const apiContent = document.getElementById('api-content');
+    const apiToggleIcon = document.getElementById('api-toggle-icon');
+    
+    // Standardmäßig ausgeklappt
+    if (apiContent && !apiContent.style.display) {
+        apiContent.style.display = 'block';
+        if (apiToggleIcon) {
+            apiToggleIcon.classList.remove('fa-chevron-up');
+            apiToggleIcon.classList.add('fa-chevron-down');
+        }
+    }
+});
