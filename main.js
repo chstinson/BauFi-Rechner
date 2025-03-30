@@ -3,7 +3,7 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // Direkte Initialisierung - keine Abhängigkeiten von anderen Dateien
-    
+
     // Globale Variablen
     window.BauFiRechner = {
         apiKey: null,
@@ -11,71 +11,113 @@ document.addEventListener('DOMContentLoaded', function() {
         datenValidiert: false,
         currentTab: 'overview'
     };
-    
+
     // Tab-Navigation initialisieren
     initTabNavigation();
-    
-    // API-Integration initialisieren
-    initAPIIntegration();
-    
+
+    // --- ENTFERNT --- : Redundante API-Integration Initialisierung hier entfernt.
+    // Die Initialisierung erfolgt korrekt über DOMContentLoaded in api-integration.js
+
     // Event-Listener für Navigation zwischen Tabs
     setupNavigationEvents();
-    
+
     // Initialisierung der Module, wenn vorhanden
+    // Diese sollten idealerweise auch über DOMContentLoaded in ihren jeweiligen Dateien erfolgen,
+    // aber wir lassen sie hier vorerst, falls es Abhängigkeiten gibt.
     if (typeof initObjectData === 'function') initObjectData();
     if (typeof initCostsData === 'function') initCostsData();
     if (typeof initFinancingData === 'function') initFinancingData();
-    
+    // Die Analyse-Initialisierung sollte idealerweise auch in analysis.js erfolgen
+    if (typeof initAnalysis === 'function') initAnalysis();
+
+
     // Datenübergreifende Änderungen überwachen
     observeDataChanges();
-    
+
     // Initialen Status aktualisieren
     if (typeof updateOverview === 'function') updateOverview();
+
+    // --- ENTFERNT --- : Redundanter API-Toggle Event-Listener hier entfernt.
+    // Der Listener wird korrekt in api-integration.js hinzugefügt.
+
+    // Beim Laden der Seite prüfen, ob ein API-Bereich initial den richtigen Status hat
+    // (Dies wird jetzt auch von api-integration.js übernommen)
+    const apiContent = document.getElementById('api-content');
+    const apiToggleIcon = document.getElementById('api-toggle-icon');
+
+    // Standardmäßig ausgeklappt (wird in api-integration.js gesetzt)
+    if (apiContent && apiContent.style.display !== 'none' && apiToggleIcon) {
+        // Sicherstellen, dass das Icon korrekt ist, falls es nicht durch api-integration.js gesetzt wurde
+         if (!apiToggleIcon.classList.contains('fa-chevron-down')) {
+             apiToggleIcon.classList.remove('fa-chevron-up');
+             apiToggleIcon.classList.add('fa-chevron-down');
+         }
+    } else if (apiContent && apiContent.style.display === 'none' && apiToggleIcon) {
+        // Sicherstellen, dass das Icon korrekt ist, falls es eingeklappt ist
+        if (!apiToggleIcon.classList.contains('fa-chevron-up')) {
+             apiToggleIcon.classList.remove('fa-chevron-down');
+             apiToggleIcon.classList.add('fa-chevron-up');
+         }
+    }
 });
 
 // Tab-Navigation - Direkte Implementation ohne externe Abhängigkeiten
 function initTabNavigation() {
     const tabLinks = document.querySelectorAll('.tab-link');
-    
+
     tabLinks.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            
+
             // Aktiven Tab-Link entfernen
             document.querySelectorAll('.tab-link').forEach(el => {
                 el.classList.remove('active');
-                el.classList.remove('bg-white');
-                el.classList.remove('border-t');
-                el.classList.remove('border-l');
-                el.classList.remove('border-r');
-                el.classList.remove('border-gray-200');
+                // Tailwind Klassen für aktiven Tab entfernen (Beispiel, ggf. anpassen)
+                 el.classList.remove('bg-white', 'border-gray-200', 'text-blue-600', 'border-b-2', 'border-blue-500');
+                 el.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300'); // Standard-Stil
             });
-            
+
             // Aktiven Tab-Link setzen
             this.classList.add('active');
-            this.classList.add('bg-white');
-            this.classList.add('border-t');
-            this.classList.add('border-l');
-            this.classList.add('border-r');
-            this.classList.add('border-gray-200');
-            
+            this.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+             this.classList.add('bg-white', 'border-gray-200', 'text-blue-600', 'border-b-2', 'border-blue-500'); // Aktiver Stil
+
+
             // Alle Tab-Inhalte ausblenden
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.add('hidden');
             });
-            
+
             // Aktuellen Tab-Inhalt einblenden
             const targetId = this.getAttribute('data-target');
             const targetContent = document.getElementById(targetId);
             if (targetContent) {
                 targetContent.classList.remove('hidden');
-                
+
                 // Aktuellen Tab in globaler Variable speichern
                 window.BauFiRechner.currentTab = targetId;
+            } else {
+                console.error("Target content not found for tab:", targetId);
             }
+             // Scrollt zum Anfang des Tabs (optional)
+             window.scrollTo({ top: targetContent.offsetTop - 150, behavior: 'smooth' }); // 150px Offset für Header/Nav
         });
     });
+
+     // Initial den ersten Tab (oder den im Hash-Fragment) aktivieren
+     const initialTab = window.location.hash ? window.location.hash.substring(1) : 'overview';
+     const initialTabLink = document.querySelector(`.tab-link[data-target="${initialTab}"]`);
+     if (initialTabLink) {
+         initialTabLink.click(); // Simuliert einen Klick, um den Tab zu aktivieren
+     } else {
+         // Fallback: Ersten Tab aktivieren, wenn Hash ungültig ist
+         const firstTabLink = document.querySelector('.tab-link');
+         if (firstTabLink) {
+            firstTabLink.click();
+         }
+     }
 }
+
 
 // Event-Listener für Navigation zwischen Tabs per Button
 function setupNavigationEvents() {
@@ -86,7 +128,7 @@ function setupNavigationEvents() {
             navigateToTab('costs');
         });
     }
-    
+
     // Kosten zu Objekt (zurück)
     const toPropertyTabBtn = document.getElementById('to-property-tab');
     if (toPropertyTabBtn) {
@@ -94,7 +136,7 @@ function setupNavigationEvents() {
             navigateToTab('property');
         });
     }
-    
+
     // Kosten zu Finanzierung
     const toFinancingTabBtn = document.getElementById('to-financing-tab');
     if (toFinancingTabBtn) {
@@ -102,7 +144,7 @@ function setupNavigationEvents() {
             navigateToTab('financing');
         });
     }
-    
+
     // Finanzierung zu Kosten (zurück)
     const toCoststabBackBtn = document.getElementById('to-costs-tab-back');
     if (toCoststabBackBtn) {
@@ -110,7 +152,7 @@ function setupNavigationEvents() {
             navigateToTab('costs');
         });
     }
-    
+
     // Finanzierung zu Analyse
     const toAnalysisTabBtn = document.getElementById('to-analysis-tab');
     if (toAnalysisTabBtn) {
@@ -118,7 +160,7 @@ function setupNavigationEvents() {
             navigateToTab('analysis');
         });
     }
-    
+
     // Analyse zu Finanzierung (zurück)
     const toFinancingTabBackBtn = document.getElementById('to-financing-tab-back');
     if (toFinancingTabBackBtn) {
@@ -126,26 +168,37 @@ function setupNavigationEvents() {
             navigateToTab('financing');
         });
     }
-    
+
     // API-Schlüssel-Button in der Analyse
     const gotoApiKeyBtn = document.getElementById('goto-api-key');
     if (gotoApiKeyBtn) {
         gotoApiKeyBtn.addEventListener('click', function() {
             // Scrolle zum API-Container
-            document.getElementById('api-global-container').scrollIntoView({
-                behavior: 'smooth'
-            });
+            const apiContainer = document.getElementById('api-global-container');
+            if (apiContainer) {
+                 apiContainer.scrollIntoView({
+                     behavior: 'smooth',
+                     block: 'start' // Scrollt zum oberen Rand des Elements
+                 });
+                 // Optional: API-Bereich aufklappen, falls er zu ist
+                 const apiContent = document.getElementById('api-content');
+                 if (apiContent && apiContent.style.display === 'none') {
+                     if(typeof toggleApiSection === 'function') {
+                        toggleApiSection();
+                     }
+                 }
+            }
         });
     }
-    
+
     // Rechner zurücksetzen
     const resetCalculatorBtn = document.getElementById('reset-calculator');
     if (resetCalculatorBtn) {
         resetCalculatorBtn.addEventListener('click', function() {
-            if (typeof resetCalculator === 'function') {
-                resetCalculator();
-            } else {
-                alert('Zurücksetzen-Funktion nicht verfügbar');
+            if (confirm("Möchten Sie wirklich alle Eingaben zurücksetzen?")) {
+                // Hier eine Funktion aufrufen, die den Reset durchführt
+                 // resetCalculator(); // Diese Funktion muss implementiert werden
+                 window.location.reload(); // Einfachste Methode: Seite neu laden
             }
         });
     }
@@ -156,245 +209,163 @@ function navigateToTab(tabId) {
     // Tab aktivieren
     const tabLink = document.querySelector(`.tab-link[data-target="${tabId}"]`);
     if (tabLink) {
-        // Manuell das Klick-Event auslösen
-        const event = new MouseEvent('click', {
-            bubbles: true,
-            cancelable: true,
-            view: window
-        });
-        tabLink.dispatchEvent(event);
+        // Manuell das Klick-Event auslösen, um die Logik in initTabNavigation zu nutzen
+        tabLink.click();
+    } else {
+         console.error(`Tab link with target "${tabId}" not found.`);
     }
 }
 
 // Änderungen in Daten beobachten (übergreifend)
 function observeDataChanges() {
-    // Sicherstellen, dass die Elemente existieren
-    const wohnflaecheInput = document.getElementById('wohnflaeche');
-    const kaufpreisInput = document.getElementById('kaufpreis');
-    
-    if (wohnflaecheInput && kaufpreisInput) {
-        wohnflaecheInput.addEventListener('input', function() {
-            if (typeof updateKaufpreisQm === 'function') updateKaufpreisQm();
-            if (typeof updateOverview === 'function') updateOverview();
-        });
-        
-        kaufpreisInput.addEventListener('input', function() {
-            if (typeof updateKaufpreisQm === 'function') updateKaufpreisQm();
-            if (typeof updateKaufnebenkosten === 'function') updateKaufnebenkosten();
-            if (typeof updateGesamtkosten === 'function') updateGesamtkosten();
-            if (typeof updateOverview === 'function') updateOverview();
-        });
-    }
-}
+    // Event Listener für relevante Eingabefelder hinzufügen,
+    // die Aktualisierungen in mehreren Bereichen auslösen
+    const inputsToObserve = [
+        'kaufpreis', 'wohnflaeche', 'eigenkapital', 'foerdermittel',
+        'modernisierungskosten', 'moebel_kosten', 'umzugskosten', 'sonstige_kosten',
+        'grunderwerbsteuer_prozent', 'notar_prozent', 'makler_prozent'
+        // Fügen Sie weitere IDs hinzu, falls nötig
+    ];
 
-// API-Integration - Direkte Implementierung
-function initAPIIntegration() {
-    // API-Containern und Eingabefeld
-    const apiKeySection = document.getElementById('api-key-section');
-    const apiProviderLabel = document.getElementById('api-provider-label');
-    const globalApiKeyInput = document.getElementById('global-api-key');
-    const validateGlobalApiBtn = document.getElementById('validate-global-api');
-    
-    // Provider-Auswahl
-    const openaiProvider = document.getElementById('openai-provider');
-    const anthropicProvider = document.getElementById('anthropic-provider');
-    const deepseekProvider = document.getElementById('deepseek-provider');
-    
-    if (openaiProvider) {
-        openaiProvider.addEventListener('click', function() {
-            selectProvider('openai');
-            showApiInputForProvider('OpenAI (GPT-4)');
-        });
-    }
-    
-    if (anthropicProvider) {
-        anthropicProvider.addEventListener('click', function() {
-            selectProvider('anthropic');
-            showApiInputForProvider('Claude');
-        });
-    }
-    
-    if (deepseekProvider) {
-        deepseekProvider.addEventListener('click', function() {
-            selectProvider('deepseek');
-            showApiInputForProvider('DeepSeek');
-        });
-    }
-    
-    // API-Schlüssel validieren
-    if (validateGlobalApiBtn) {
-        validateGlobalApiBtn.addEventListener('click', function() {
-            validateApiKey();
-        });
-    }
-}
-
-// Provider auswählen und API-Eingabefeld anzeigen
-function showApiInputForProvider(providerName) {
-    const apiKeySection = document.getElementById('api-key-section');
-    const apiProviderLabel = document.getElementById('api-provider-label');
-    
-    if (apiKeySection && apiProviderLabel) {
-        // API-Eingabefeld anzeigen und Label aktualisieren
-        apiKeySection.classList.remove('hidden');
-        apiProviderLabel.textContent = `${providerName} API-Schlüssel`;
-        
-        // Fokus auf das API-Eingabefeld setzen
-        document.getElementById('global-api-key').focus();
-    }
-}
-
-// Provider auswählen
-function selectProvider(providerId) {
-    window.BauFiRechner.apiProvider = providerId;
-    
-    // UI aktualisieren
-    document.querySelectorAll('#openai-provider, #anthropic-provider, #deepseek-provider').forEach(el => {
-        el.classList.remove('border-blue-500', 'bg-blue-50');
-    });
-    
-    document.getElementById(`${providerId}-provider`).classList.add('border-blue-500', 'bg-blue-50');
-}
-
-// API-Key validieren - direkte Implementierung
-function validateApiKey() {
-    const apiProvider = window.BauFiRechner.apiProvider;
-    if (!apiProvider) {
-        alert('Bitte wählen Sie einen API-Provider aus.');
-        return;
-    }
-    
-    const apiKey = document.getElementById('global-api-key').value.trim();
-    if (!apiKey) {
-        alert('Bitte geben Sie Ihren API-Schlüssel ein.');
-        return;
-    }
-    
-    const validateButton = document.getElementById('validate-global-api');
-    validateButton.textContent = 'Prüfe...';
-    validateButton.disabled = true;
-    
-    // Simulieren einer API-Validierung (für Demo-Zwecke)
-    setTimeout(function() {
-        // API-Schlüssel speichern
-        window.BauFiRechner.apiKey = apiKey;
-        
-        // Status aktualisieren
-        const apiStatus = document.getElementById('api-status');
-        if (apiStatus) {
-            apiStatus.classList.remove('hidden');
-            apiStatus.classList.add('bg-green-50', 'border', 'border-green-500');
-            apiStatus.innerHTML = `
-                <p class="text-green-700">
-                    <i class="fas fa-check-circle mr-2"></i>
-                    API-Schlüssel für ${getProviderName(apiProvider)} erfolgreich validiert. Sie können nun die KI-Analysefunktionen nutzen.
-                </p>
-            `;
-        }
-        
-        // UI in anderen Tabs aktualisieren
-        const kiCheckContainer = document.getElementById('ki-check-container');
-        if (kiCheckContainer) {
-            kiCheckContainer.innerHTML = `
-                <p class="text-sm text-green-800">
-                    <i class="fas fa-check-circle mr-2"></i>
-                    API-Schlüssel für ${getProviderName(apiProvider)} erfolgreich validiert. Sie können die Analyse und Optimierung starten.
-                </p>
-            `;
-            kiCheckContainer.classList.remove('bg-yellow-50', 'border-yellow-200');
-            kiCheckContainer.classList.add('bg-green-50', 'border-green-200');
-        }
-        
-        // Analyse-Optionen aktivieren
-        const analyseOptionen = document.getElementById('analyse-optionen');
-        if (analyseOptionen) {
-            const options = analyseOptionen.querySelectorAll('div[id$="-analyse"]');
-            options.forEach(option => {
-                option.classList.add('bg-white');
-                option.addEventListener('click', function(e) {
-                    const optionId = e.currentTarget.id;
-                    // Analyse starten
-                    if (typeof startAnalysis === 'function') {
-                        startAnalysis(optionId.replace('-analyse', ''));
-                    } else {
-                        alert('Analyse-Funktion nicht verfügbar');
-                    }
-                });
+    inputsToObserve.forEach(inputId => {
+        const inputElement = document.getElementById(inputId);
+        if (inputElement) {
+            inputElement.addEventListener('input', () => {
+                 // Rufen Sie die relevanten Update-Funktionen auf
+                 // Diese sollten idealerweise prüfen, ob sie benötigt werden
+                 if (typeof updateKaufpreisQm === 'function') updateKaufpreisQm();
+                 if (typeof updateKaufnebenkosten === 'function') updateKaufnebenkosten();
+                 if (typeof updateGesamtkosten === 'function') updateGesamtkosten();
+                 if (typeof updateFinanzierungsstruktur === 'function') updateFinanzierungsstruktur(); // Stellt sicher, dass Kostenänderungen die Finanzierung aktualisieren
+                 if (typeof updateEigenkapitalBerechnung === 'function') updateEigenkapitalBerechnung(); // Stellt sicher, dass Kostenänderungen die EK-Quote etc. aktualisieren
+                 if (typeof updateOverview === 'function') updateOverview();
             });
         }
-        
-        validateButton.textContent = 'Validiert ✓';
-        setTimeout(function() {
-            validateButton.textContent = 'Validieren';
-            validateButton.disabled = false;
-        }, 2000);
-        
-    }, 1000);
+    });
+
+     // Spezielle Beobachtung für Darlehensänderungen (da sie dynamisch sind)
+     const darlehenContainer = document.getElementById('darlehen-container');
+     if (darlehenContainer) {
+         // Verwende Event Delegation, da Darlehen hinzugefügt/entfernt werden
+         darlehenContainer.addEventListener('input', (event) => {
+             // Prüfen, ob das Event von einem relevanten Input innerhalb eines Darlehensblocks stammt
+             if (event.target.closest('.darlehen-block') && (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT')) {
+                  // Update-Funktionen aufrufen, die von Darlehensänderungen abhängen
+                  if (typeof updateFinanzierungsSumme === 'function') updateFinanzierungsSumme();
+                  if (typeof updateOverview === 'function') updateOverview();
+                  // Tilgungsplan muss ggf. auch aktualisiert werden, wenn er sichtbar ist
+                  const tilgungsplanContainer = document.getElementById('tilgungsplanContainerAnalyse');
+                  if (tilgungsplanContainer && !tilgungsplanContainer.classList.contains('hidden') && typeof updateTilgungsplan === 'function') {
+                      updateTilgungsplan();
+                  }
+             }
+         });
+          // Beobachte auch Klicks auf "Entfernen"-Buttons
+          darlehenContainer.addEventListener('click', (event) => {
+              if (event.target.closest('.darlehen-remove')) {
+                   // Kurze Verzögerung, damit das Entfernen abgeschlossen ist, bevor aktualisiert wird
+                   setTimeout(() => {
+                       if (typeof updateFinanzierungsSumme === 'function') updateFinanzierungsSumme();
+                       if (typeof updateOverview === 'function') updateOverview();
+                           const tilgungsplanContainer = document.getElementById('tilgungsplanContainerAnalyse');
+                           if (tilgungsplanContainer && !tilgungsplanContainer.classList.contains('hidden') && typeof updateTilgungsplan === 'function') {
+                               updateTilgungsplan();
+                           }
+                   }, 50); // 50ms Verzögerung
+              }
+          });
+     }
+
+     // Beobachtung für Nutzungsart (relevant für Mietrendite etc.)
+     const nutzungsartSelect = document.getElementById('nutzungsart');
+     if (nutzungsartSelect) {
+         nutzungsartSelect.addEventListener('change', () => {
+             if (typeof updateOverview === 'function') updateOverview();
+             // Ggf. weitere spezifische Updates für Kapitalanlage-Felder
+         });
+     }
 }
 
-// Provider-Name abrufen
-function getProviderName(providerId) {
-    switch(providerId) {
-        case 'openai': return 'OpenAI (GPT-4)';
-        case 'anthropic': return 'Claude';
-        case 'deepseek': return 'DeepSeek';
-        default: return 'KI-Provider';
-    }
-}
+
+// --- ENTFERNT --- : Redundante API-Integration Funktionen hier entfernt.
+// Diese befinden sich jetzt ausschließlich in api-integration.js
+
 
 // Formatierungsfunktion für Währungsbeträge
 function formatCurrency(value) {
+    // Prüfen, ob der Wert gültig ist
+    if (isNaN(value) || value === null) {
+        return '-'; // Oder einen anderen Platzhalter zurückgeben
+    }
     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
 }
 
 // Formatierungsfunktion für Prozentsätze
 function formatPercent(value) {
-    return new Intl.NumberFormat('de-DE', { 
-        style: 'percent', 
+     // Prüfen, ob der Wert gültig ist
+     if (isNaN(value) || value === null) {
+         return '-'; // Oder einen anderen Platzhalter zurückgeben
+     }
+    return new Intl.NumberFormat('de-DE', {
+        style: 'percent',
         minimumFractionDigits: 1,
-        maximumFractionDigits: 2 
+        maximumFractionDigits: 2
     }).format(value / 100);
 }
 
-// Funktion zum Ein-/Ausklappen des API-Bereichs
-// Diese Funktion muss im globalen Bereich definiert sein
-function toggleApiSection() {
-    const content = document.getElementById('api-content');
-    const icon = document.getElementById('api-toggle-icon');
-    
-    if (content.style.display === 'none') {
-        content.style.display = 'block';
-        icon.classList.remove('fa-chevron-up');
-        icon.classList.add('fa-chevron-down');
-    } else {
-        content.style.display = 'none';
-        icon.classList.remove('fa-chevron-down');
-        icon.classList.add('fa-chevron-up');
-    }
-}
+// --- ENTFERNT --- : Redundante toggleApiSection Funktion hier entfernt.
+// Diese befindet sich jetzt ausschließlich in api-integration.js
 
-// Ergänzen Sie diese Funktion in Ihrer main.js oder fügen Sie sie am Ende hinzu
 
-// Initialisierung ergänzen
-document.addEventListener('DOMContentLoaded', function() {
-    // Existierende Initialisierungen...
-    
-    // API-Toggle initialisieren
-    const apiToggleHeader = document.getElementById('api-toggle-header');
-    if (apiToggleHeader) {
-        apiToggleHeader.addEventListener('click', toggleApiSection);
-    }
-    
-    // Beim Laden der Seite prüfen, ob ein API-Bereich ausgeblendet werden soll
-    const apiContent = document.getElementById('api-content');
-    const apiToggleIcon = document.getElementById('api-toggle-icon');
-    
-    // Standardmäßig ausgeklappt
-    if (apiContent && !apiContent.style.display) {
-        apiContent.style.display = 'block';
-        if (apiToggleIcon) {
-            apiToggleIcon.classList.remove('fa-chevron-up');
-            apiToggleIcon.classList.add('fa-chevron-down');
-        }
-    }
-});
+// Funktion zur Aktualisierung der Übersicht (Beispielimplementierung)
+function updateOverview() {
+     // Diese Funktion sollte Daten aus allen Bereichen sammeln und im Übersicht-Tab anzeigen
+     console.log("Updating overview..."); // Debug-Ausgabe
+
+     // Objektdaten holen
+     const objekttyp = document.getElementById('objekttyp')?.value || '-';
+     const ort = document.getElementById('ort')?.value || '';
+     const plz = document.getElementById('plz')?.value || '';
+     const standort = (plz || ort) ? `${plz} ${ort}`.trim() : '-';
+     const wohnflaeche = document.getElementById('wohnflaeche')?.value ? document.getElementById('wohnflaeche').value + ' m²' : '-';
+     const kaufpreis = parseFloat(document.getElementById('kaufpreis')?.value) || 0;
+
+     // Finanzierungsdaten holen
+     const darlehenSumme = parseFloat(document.getElementById('darlehen_summe')?.textContent.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+     const eigenkapital = parseFloat(document.getElementById('eigenkapital')?.value) || 0;
+     const rateSumme = parseFloat(document.getElementById('rate_summe')?.textContent.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+
+     // Zinsbindung (komplexer, da mehrere Darlehen möglich) - hier vereinfacht das erste Darlehen
+     const ersteZinsbindung = document.querySelector('#darlehen-1 .darlehen-zinsbindung')?.value;
+     const zinsbindungText = ersteZinsbindung ? ersteZinsbindung + ' Jahre' : '-';
+
+     // Übersicht aktualisieren
+     document.getElementById('overview-objekttyp').textContent = objekttyp;
+     document.getElementById('overview-standort').textContent = standort;
+     document.getElementById('overview-wohnflaeche').textContent = wohnflaeche;
+     document.getElementById('overview-kaufpreis').textContent = formatCurrency(kaufpreis);
+
+     document.getElementById('overview-darlehenssumme').textContent = formatCurrency(darlehenSumme);
+     document.getElementById('overview-eigenkapital').textContent = formatCurrency(eigenkapital);
+     document.getElementById('overview-rate').textContent = formatCurrency(rateSumme);
+     document.getElementById('overview-zinsbindung').textContent = zinsbindungText;
+
+     // Schnellanalyse aktualisieren (Beispiel)
+     const quickAnalysisDiv = document.getElementById('quick-analysis');
+     if (kaufpreis > 0 && darlehenSumme > 0 && rateSumme > 0) {
+         const ekQuote = parseFloat(document.getElementById('eigenkapital_quote')?.textContent.replace('%','')) || 0;
+         quickAnalysisDiv.innerHTML = `
+             <p>Basierend auf Ihren Eingaben finanzieren Sie eine Immobilie für ${formatCurrency(kaufpreis)} mit ${formatCurrency(darlehenSumme)} Darlehensvolumen.</p>
+             <p>Ihre monatliche Gesamtbelastung beträgt ${formatCurrency(rateSumme)} bei einer Eigenkapitalquote von ${ekQuote.toFixed(1)}%.</p>
+             <p class="${ekQuote < 15 ? 'text-red-600' : 'text-green-600'}">
+                 ${ekQuote < 15 ? 'Hinweis: Die Eigenkapitalquote ist relativ niedrig.' : 'Die Eigenkapitalquote scheint solide.'}
+             </p>
+             <button onclick="navigateToTab('analysis')" class="mt-2 px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition">Zur Detailanalyse</button>
+         `;
+     } else {
+         quickAnalysisDiv.textContent = 'Füllen Sie die Objektdaten und Finanzierungsdetails aus, um eine automatische Analyse zu erhalten.';
+     }
+ }
+
+ // Sicherstellen, dass alle Initialisierungen nach dem Laden des DOM erfolgen
+ // Das ist durch den DOMContentLoaded-Listener am Anfang abgedeckt.
