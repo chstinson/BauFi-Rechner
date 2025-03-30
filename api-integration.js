@@ -1,42 +1,55 @@
 // api-integration.js
-// Unterstützung für die KI-Integration und das Ein-/Ausklappen des API-Bereichs
-// Diese Datei ergänzt die Funktionalität in analysis.js
+// Funktionalität für die KI-Integration und das Ein-/Ausklappen des API-Bereichs
 
 document.addEventListener('DOMContentLoaded', function() {
-    // API-Bereich initialisieren - nur Ein-/Ausklappfunktion
-    initApiToggle();
+    // API-Bereich initialisieren - explizite Anzeige im DOM
+    const apiContent = document.getElementById('api-content');
+    if (apiContent) {
+        apiContent.style.display = 'block';
+    }
     
     // Provider-Auswahl einrichten
     initProviderSelection();
     
     // API-Schlüssel-Validierung (Brücke zu analysis.js)
     initApiKeyValidation();
+    
+    // Stellen Sie sicher, dass der Toggle-Handler korrekt initialisiert ist
+    const apiToggleHeader = document.getElementById('api-toggle-header');
+    if (apiToggleHeader) {
+        apiToggleHeader.addEventListener('click', function() {
+            toggleApiSection();
+        });
+    }
 });
 
-// API-Bereich initialisieren (nur Toggle-Funktion)
-function initApiToggle() {
-    const apiToggleHeader = document.getElementById('api-toggle-header');
-    const apiContent = document.getElementById('api-content');
-    const apiToggleIcon = document.getElementById('api-toggle-icon');
+// API-Bereich ein-/ausklappen - explizit als globale Funktion definiert
+window.toggleApiSection = function() {
+    console.log("Toggle API Section called"); // Debug-Ausgabe
+    const content = document.getElementById('api-content');
+    const icon = document.getElementById('api-toggle-icon');
     
-    // Toggle-Funktion global verfügbar machen
-    window.toggleApiSection = function() {
-        if (apiContent.style.display === 'none') {
-            apiContent.style.display = 'block';
-            apiToggleIcon.classList.remove('fa-chevron-up');
-            apiToggleIcon.classList.add('fa-chevron-down');
-        } else {
-            apiContent.style.display = 'none';
-            apiToggleIcon.classList.remove('fa-chevron-down');
-            apiToggleIcon.classList.add('fa-chevron-up');
-        }
-    };
+    if (!content || !icon) {
+        console.error("API content or icon element not found");
+        return;
+    }
     
-    // Initialer Zustand: Ausgeklappt
-    apiContent.style.display = 'block';
-    apiToggleIcon.classList.remove('fa-chevron-up');
-    apiToggleIcon.classList.add('fa-chevron-down');
-}
+    // Prüfen des aktuellen Anzeigestatus
+    const isHidden = content.style.display === 'none';
+    
+    // Umschalten des Anzeigestatus
+    if (isHidden) {
+        content.style.display = 'block';
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+    } else {
+        content.style.display = 'none';
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+    }
+    
+    console.log("Content display set to: " + content.style.display); // Debug-Ausgabe
+};
 
 // Provider-Auswahl einrichten
 function initProviderSelection() {
@@ -53,9 +66,10 @@ function initProviderSelection() {
             this.classList.add('border-blue-500', 'bg-blue-50');
             
             // Provider-ID in der globalen BauFiRechner-Variable speichern
-            if (window.BauFiRechner) {
-                window.BauFiRechner.apiProvider = this.getAttribute('data-provider');
+            if (!window.BauFiRechner) {
+                window.BauFiRechner = {};
             }
+            window.BauFiRechner.apiProvider = this.getAttribute('data-provider');
             
             // Provider-Label aktualisieren
             const providerName = this.querySelector('.font-medium').textContent;
@@ -67,7 +81,7 @@ function initProviderSelection() {
     });
 }
 
-// API-Schlüssel-Validierung einrichten (Brücke zu analysis.js)
+// API-Schlüssel-Validierung einrichten
 function initApiKeyValidation() {
     const validateButton = document.getElementById('validate-global-api');
     
@@ -98,7 +112,7 @@ function initApiKeyValidation() {
     }
 }
 
-// Einfache API-Schlüssel-Validierung (Fallback)
+// Einfache API-Schlüssel-Validierung (mit strikteren Bedingungen)
 function simpleValidateApiKey() {
     // Überprüfen, ob ein Provider ausgewählt wurde
     if (!window.BauFiRechner || !window.BauFiRechner.apiProvider) {
@@ -119,13 +133,31 @@ function simpleValidateApiKey() {
     // Status während der Validierung anzeigen
     showApiStatus('pending', 'Validiere API-Schlüssel...');
     
-    // Simulierte API-Validierung (wird normalerweise durch die vollständige Validierung in analysis.js ersetzt)
+    // Simulierte API-Validierung mit strengeren Prüfungen
     setTimeout(() => {
-        // API-Schlüssel validieren (einfacher Check: Schlüssel muss mindestens 8 Zeichen haben)
-        const isValid = apiKey.length >= 8;
+        // API-Schlüssel validieren (mind. 8 Zeichen und grundlegende Formatprüfung)
+        const isValidLength = apiKey.length >= 8;
+        let isValidFormat = false;
+        
+        // Unterschiedliche Formate je nach Provider
+        if (window.BauFiRechner.apiProvider === 'openai') {
+            // OpenAI API-Keys beginnen mit 'sk-'
+            isValidFormat = apiKey.startsWith('sk-');
+        } else if (window.BauFiRechner.apiProvider === 'anthropic') {
+            // Einfache Formatprüfung für Claude
+            isValidFormat = /^[a-zA-Z0-9_-]{20,}$/.test(apiKey);
+        } else if (window.BauFiRechner.apiProvider === 'deepseek') {
+            // Einfache Formatprüfung für DeepSeek
+            isValidFormat = /^[a-zA-Z0-9_.-]{16,}$/.test(apiKey);
+        }
+        
+        const isValid = isValidLength && isValidFormat;
         
         if (isValid) {
             // API-Schlüssel speichern
+            if (!window.BauFiRechner) {
+                window.BauFiRechner = {};
+            }
             window.BauFiRechner.apiKey = apiKey;
             window.BauFiRechner.datenValidiert = true;
             
@@ -134,7 +166,16 @@ function simpleValidateApiKey() {
             // KI-Check im Analyse-Tab aktualisieren
             updateKiCheckInAnalyseTab(true);
         } else {
-            showApiStatus(false, 'Ungültiger API-Schlüssel. Bitte überprüfen Sie Ihre Eingabe oder wenden Sie sich an den Support.');
+            let errorMsg = 'Ungültiger API-Schlüssel. ';
+            if (!isValidLength) {
+                errorMsg += 'Der API-Schlüssel muss mindestens 8 Zeichen lang sein. ';
+            }
+            if (!isValidFormat) {
+                errorMsg += 'Das Format entspricht nicht dem erwarteten Muster für ' + getProviderName(window.BauFiRechner.apiProvider) + '. ';
+            }
+            errorMsg += 'Bitte überprüfen Sie Ihre Eingabe oder wenden Sie sich an den Support.';
+            
+            showApiStatus(false, errorMsg);
         }
         
         // Button zurücksetzen
@@ -143,7 +184,7 @@ function simpleValidateApiKey() {
     }, 1500);
 }
 
-// API-Status anzeigen (Hilfsfunktion)
+// API-Status anzeigen
 function showApiStatus(status, message) {
     const statusDiv = document.getElementById('api-status');
     if (!statusDiv) return;
@@ -180,7 +221,7 @@ function showApiStatus(status, message) {
     }
 }
 
-// KI-Status im Analyse-Tab aktualisieren (Hilfsfunktion)
+// KI-Status im Analyse-Tab aktualisieren
 function updateKiCheckInAnalyseTab(isValid) {
     const kiCheckContainer = document.getElementById('ki-check-container');
     if (!kiCheckContainer) return;
@@ -198,7 +239,7 @@ function updateKiCheckInAnalyseTab(isValid) {
     }
 }
 
-// Provider-Name abrufen (Hilfsfunktion)
+// Provider-Name abrufen
 function getProviderName(providerId) {
     switch(providerId) {
         case 'openai': return 'OpenAI (GPT-4)';
