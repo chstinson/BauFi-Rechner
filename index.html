@@ -62,25 +62,31 @@
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="border rounded p-4 cursor-pointer" id="openai-provider">
+            <div class="border rounded p-4 cursor-pointer provider-option" id="openai-provider" data-provider="openai">
                 <div class="flex items-center mb-2">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/180px-ChatGPT_logo.svg.png" alt="OpenAI Logo" class="h-6 w-6 mr-2">
+                    <span class="h-6 w-6 mr-2 flex items-center justify-center text-green-500">
+                        <i class="fas fa-robot"></i>
+                    </span>
                     <span class="font-medium">OpenAI (GPT-4)</span>
                 </div>
                 <p class="text-sm text-gray-600">Nutzen Sie GPT-4 für detaillierte Analysen Ihrer Baufinanzierung.</p>
             </div>
             
-            <div class="border rounded p-4 cursor-pointer" id="anthropic-provider">
+            <div class="border rounded p-4 cursor-pointer provider-option" id="anthropic-provider" data-provider="anthropic">
                 <div class="flex items-center mb-2">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Anthropic_logo.svg/220px-Anthropic_logo.svg.png" alt="Claude Logo" class="h-6 w-6 mr-2">
+                    <span class="h-6 w-6 mr-2 flex items-center justify-center text-purple-500">
+                        <i class="fas fa-brain"></i>
+                    </span>
                     <span class="font-medium">Claude</span>
                 </div>
                 <p class="text-sm text-gray-600">Claude analysiert Ihre Immobilienfinanzierung und liefert Optimierungsvorschläge.</p>
             </div>
             
-            <div class="border rounded p-4 cursor-pointer" id="deepseek-provider">
+            <div class="border rounded p-4 cursor-pointer provider-option" id="deepseek-provider" data-provider="deepseek">
                 <div class="flex items-center mb-2">
-                    <img src="https://www.deepseek.com/favicon.ico" alt="DeepSeek Logo" class="h-6 w-6 mr-2">
+                    <span class="h-6 w-6 mr-2 flex items-center justify-center text-blue-500">
+                        <i class="fas fa-search"></i>
+                    </span>
                     <span class="font-medium">DeepSeek</span>
                 </div>
                 <p class="text-sm text-gray-600">DeepSeek's KI bewertet Ihre Immobilienfinanzierung und vergleicht Marktdaten.</p>
