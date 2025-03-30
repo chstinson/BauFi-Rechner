@@ -1,23 +1,20 @@
 // api-integration.js
-// Funktionalität für die KI-Integration und API-Validierung
+// Unterstützung für die KI-Integration und das Ein-/Ausklappen des API-Bereichs
+// Diese Datei ergänzt die Funktionalität in analysis.js
 
 document.addEventListener('DOMContentLoaded', function() {
-    // API-Bereich initialisieren
-    initApiSection();
+    // API-Bereich initialisieren - nur Ein-/Ausklappfunktion
+    initApiToggle();
     
     // Provider-Auswahl einrichten
     initProviderSelection();
     
-    // API-Schlüssel-Validierung einrichten
+    // API-Schlüssel-Validierung (Brücke zu analysis.js)
     initApiKeyValidation();
-    
-    // Analyse-Integration
-    initAnalysisIntegration();
 });
 
-// API-Bereich initialisieren
-function initApiSection() {
-    // API-Toggle-Header
+// API-Bereich initialisieren (nur Toggle-Funktion)
+function initApiToggle() {
     const apiToggleHeader = document.getElementById('api-toggle-header');
     const apiContent = document.getElementById('api-content');
     const apiToggleIcon = document.getElementById('api-toggle-icon');
@@ -70,12 +67,20 @@ function initProviderSelection() {
     });
 }
 
-// API-Schlüssel-Validierung einrichten
+// API-Schlüssel-Validierung einrichten (Brücke zu analysis.js)
 function initApiKeyValidation() {
     const validateButton = document.getElementById('validate-global-api');
     
     if (validateButton) {
-        validateButton.addEventListener('click', validateApiKey);
+        validateButton.addEventListener('click', function() {
+            // Wenn die analysis.js-Funktion existiert, verwende diese
+            if (typeof validateGlobalApiKey === 'function') {
+                validateGlobalApiKey();
+            } else {
+                // Fallback, falls die Funktion nicht existiert
+                simpleValidateApiKey();
+            }
+        });
     }
     
     // Enter-Taste im API-Schlüssel-Feld triggert Validierung
@@ -83,14 +88,18 @@ function initApiKeyValidation() {
     if (apiKeyInput) {
         apiKeyInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                validateApiKey();
+                if (typeof validateGlobalApiKey === 'function') {
+                    validateGlobalApiKey();
+                } else {
+                    simpleValidateApiKey();
+                }
             }
         });
     }
 }
 
-// API-Schlüssel validieren
-function validateApiKey() {
+// Einfache API-Schlüssel-Validierung (Fallback)
+function simpleValidateApiKey() {
     // Überprüfen, ob ein Provider ausgewählt wurde
     if (!window.BauFiRechner || !window.BauFiRechner.apiProvider) {
         alert('Bitte wählen Sie zuerst einen API-Provider aus.');
@@ -110,7 +119,7 @@ function validateApiKey() {
     // Status während der Validierung anzeigen
     showApiStatus('pending', 'Validiere API-Schlüssel...');
     
-    // Simulierte API-Validierung (wird in einer realen Anwendung durch echten API-Call ersetzt)
+    // Simulierte API-Validierung (wird normalerweise durch die vollständige Validierung in analysis.js ersetzt)
     setTimeout(() => {
         // API-Schlüssel validieren (einfacher Check: Schlüssel muss mindestens 8 Zeichen haben)
         const isValid = apiKey.length >= 8;
@@ -124,9 +133,6 @@ function validateApiKey() {
             
             // KI-Check im Analyse-Tab aktualisieren
             updateKiCheckInAnalyseTab(true);
-            
-            // Analyse-Optionen freischalten
-            enableAnalysisOptions();
         } else {
             showApiStatus(false, 'Ungültiger API-Schlüssel. Bitte überprüfen Sie Ihre Eingabe oder wenden Sie sich an den Support.');
         }
@@ -137,7 +143,7 @@ function validateApiKey() {
     }, 1500);
 }
 
-// API-Status anzeigen
+// API-Status anzeigen (Hilfsfunktion)
 function showApiStatus(status, message) {
     const statusDiv = document.getElementById('api-status');
     if (!statusDiv) return;
@@ -174,7 +180,7 @@ function showApiStatus(status, message) {
     }
 }
 
-// KI-Status im Analyse-Tab aktualisieren
+// KI-Status im Analyse-Tab aktualisieren (Hilfsfunktion)
 function updateKiCheckInAnalyseTab(isValid) {
     const kiCheckContainer = document.getElementById('ki-check-container');
     if (!kiCheckContainer) return;
@@ -192,84 +198,12 @@ function updateKiCheckInAnalyseTab(isValid) {
     }
 }
 
-// Provider-Name abrufen
+// Provider-Name abrufen (Hilfsfunktion)
 function getProviderName(providerId) {
     switch(providerId) {
         case 'openai': return 'OpenAI (GPT-4)';
         case 'anthropic': return 'Claude';
         case 'deepseek': return 'DeepSeek';
         default: return 'KI-Provider';
-    }
-}
-
-// Analyse-Optionen freischalten
-function enableAnalysisOptions() {
-    const analyseOptionen = document.getElementById('analyse-optionen');
-    if (!analyseOptionen) return;
-    
-    // Optionen aktiv setzen
-    analyseOptionen.classList.remove('opacity-50');
-    
-    // Event-Listener für Analyse-Optionen hinzufügen
-    const options = [
-        'marktdaten-analyse',
-        'belastungs-analyse',
-        'optimierungs-analyse',
-        'vollstaendige-analyse'
-    ];
-    
-    options.forEach(optionId => {
-        const option = document.getElementById(optionId);
-        if (option) {
-            option.classList.add('cursor-pointer');
-            
-            // Event-Listener nur hinzufügen, wenn noch keiner existiert
-            const existingClickListener = option.getAttribute('data-has-click-listener');
-            if (!existingClickListener) {
-                option.addEventListener('click', function() {
-                    startAnalysis(optionId.replace('-analyse', ''));
-                });
-                option.setAttribute('data-has-click-listener', 'true');
-            }
-        }
-    });
-}
-
-// Analyse-Integration
-function initAnalysisIntegration() {
-    // "API-Schlüssel eingeben" Button im Analyse-Tab
-    const gotoApiKeyBtn = document.getElementById('goto-api-key');
-    if (gotoApiKeyBtn) {
-        gotoApiKeyBtn.addEventListener('click', function() {
-            // Zum API-Bereich scrollen
-            const apiContainer = document.getElementById('api-global-container');
-            if (apiContainer) {
-                apiContainer.scrollIntoView({ behavior: 'smooth' });
-                
-                // Sicherstellen, dass der API-Bereich ausgeklappt ist
-                const apiContent = document.getElementById('api-content');
-                if (apiContent && apiContent.style.display === 'none') {
-                    window.toggleApiSection();
-                }
-                
-                // Nach kurzer Verzögerung Fokus auf das API-Schlüssel-Feld setzen
-                setTimeout(() => {
-                    const apiKeyInput = document.getElementById('global-api-key');
-                    if (apiKeyInput) {
-                        apiKeyInput.focus();
-                    }
-                }, 500);
-            }
-        });
-    }
-}
-
-// Analyse starten (Brücke zur analysis.js)
-function startAnalysis(analysisType) {
-    // Wenn die Funktion in analysis.js existiert, diese aufrufen
-    if (typeof window.startAnalysis === 'function') {
-        window.startAnalysis(analysisType);
-    } else {
-        console.error('Die startAnalysis-Funktion konnte nicht gefunden werden. Bitte stellen Sie sicher, dass analysis.js korrekt geladen wurde.');
     }
 }
