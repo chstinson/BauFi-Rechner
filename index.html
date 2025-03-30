@@ -107,33 +107,7 @@
         </div>
     </div>
 </div>
-    
-<!-- JavaScript für das Ein-/Ausklappen hinzufügen -->
-<script>
-function toggleApiSection() {
-    const content = document.getElementById('api-content');
-    const icon = document.getElementById('api-toggle-icon');
-    
-    if (content.style.display === 'none') {
-        content.style.display = 'block';
-        icon.classList.remove('fa-chevron-up');
-        icon.classList.add('fa-chevron-down');
-    } else {
-        content.style.display = 'none';
-        icon.classList.remove('fa-chevron-down');
-        icon.classList.add('fa-chevron-up');
-    }
-}
-
-// Beim Laden der Seite den API-Bereich als ausgeklappt anzeigen
-document.addEventListener('DOMContentLoaded', function() {
-    const content = document.getElementById('api-content');
-    if (content) {
-        content.style.display = 'block';
-    }
-});
-</script>
-            
+                
         <!-- Tab-Inhalte -->
         <div class="tab-contents">
             <!-- Übersicht Tab -->
