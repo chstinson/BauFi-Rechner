@@ -88,7 +88,11 @@ function initApiKeyValidation() {
     
     if (validateButton) {
         validateButton.addEventListener('click', function() {
-            // IMMER die echte Validierungsfunktion verwenden
+            // Existierende Event-Listener entfernen
+            validateButton.removeEventListener('click', validateGlobalApiKey);
+            validateButton.removeEventListener('click', simpleValidateApiKey);
+            
+            // AUSSCHLIESSLICH die echte Validierungsfunktion verwenden
             validateGlobalApiKey();
         });
     }
@@ -98,10 +102,17 @@ function initApiKeyValidation() {
     if (apiKeyInput) {
         apiKeyInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
+                // AUSSCHLIESSLICH die echte Validierungsfunktion verwenden
                 validateGlobalApiKey();
             }
         });
     }
+    
+    // Stelle sicher, dass die einfache Validierung nicht mehr existiert oder aufgerufen wird
+    window.simpleValidateApiKey = function() {
+        console.log("Einfache Validierung deaktiviert, verwende stattdessen echte Validierung.");
+        validateGlobalApiKey();
+    };
 }
 
 // Hilfsfunktion zur Anzeige des API-Status - für Kompatibilität mit analysis.js
