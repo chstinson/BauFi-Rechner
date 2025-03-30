@@ -11,12 +11,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Provider-Auswahl einrichten
     initProviderSelection();
     
-    // API-Schlüssel-Validierung (Brücke zu analysis.js)
+    // API-Schlüssel-Validierung direkt an analysis.js anbinden
     initApiKeyValidation();
     
-    // Stellen Sie sicher, dass der Toggle-Handler korrekt initialisiert ist
+    // Toggle-Handler direkt im JavaScript einrichten, anstatt onclick im HTML zu verwenden
     const apiToggleHeader = document.getElementById('api-toggle-header');
     if (apiToggleHeader) {
+        apiToggleHeader.removeAttribute('onclick'); // Entfernen des onclick-Attributs
         apiToggleHeader.addEventListener('click', function() {
             toggleApiSection();
         });
@@ -24,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // API-Bereich ein-/ausklappen - explizit als globale Funktion definiert
-window.toggleApiSection = function() {
+function toggleApiSection() {
     console.log("Toggle API Section called"); // Debug-Ausgabe
     const content = document.getElementById('api-content');
     const icon = document.getElementById('api-toggle-icon');
@@ -49,7 +50,7 @@ window.toggleApiSection = function() {
     }
     
     console.log("Content display set to: " + content.style.display); // Debug-Ausgabe
-};
+}
 
 // Provider-Auswahl einrichten
 function initProviderSelection() {
@@ -81,19 +82,14 @@ function initProviderSelection() {
     });
 }
 
-// API-Schlüssel-Validierung einrichten
+// API-Schlüssel-Validierung einrichten - DIREKT zu validateGlobalApiKey in analysis.js
 function initApiKeyValidation() {
     const validateButton = document.getElementById('validate-global-api');
     
     if (validateButton) {
         validateButton.addEventListener('click', function() {
-            // Wenn die analysis.js-Funktion existiert, verwende diese
-            if (typeof validateGlobalApiKey === 'function') {
-                validateGlobalApiKey();
-            } else {
-                // Fallback, falls die Funktion nicht existiert
-                simpleValidateApiKey();
-            }
+            // IMMER die echte Validierungsfunktion verwenden
+            validateGlobalApiKey();
         });
     }
     
@@ -102,89 +98,13 @@ function initApiKeyValidation() {
     if (apiKeyInput) {
         apiKeyInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                if (typeof validateGlobalApiKey === 'function') {
-                    validateGlobalApiKey();
-                } else {
-                    simpleValidateApiKey();
-                }
+                validateGlobalApiKey();
             }
         });
     }
 }
 
-// Einfache API-Schlüssel-Validierung (mit strikteren Bedingungen)
-function simpleValidateApiKey() {
-    // Überprüfen, ob ein Provider ausgewählt wurde
-    if (!window.BauFiRechner || !window.BauFiRechner.apiProvider) {
-        alert('Bitte wählen Sie zuerst einen API-Provider aus.');
-        return;
-    }
-    
-    const apiKey = document.getElementById('global-api-key').value.trim();
-    if (!apiKey) {
-        showApiStatus(false, 'Bitte geben Sie einen API-Schlüssel ein.');
-        return;
-    }
-    
-    const validateButton = document.getElementById('validate-global-api');
-    validateButton.textContent = 'Validiere...';
-    validateButton.disabled = true;
-    
-    // Status während der Validierung anzeigen
-    showApiStatus('pending', 'Validiere API-Schlüssel...');
-    
-    // Simulierte API-Validierung mit strengeren Prüfungen
-    setTimeout(() => {
-        // API-Schlüssel validieren (mind. 8 Zeichen und grundlegende Formatprüfung)
-        const isValidLength = apiKey.length >= 8;
-        let isValidFormat = false;
-        
-        // Unterschiedliche Formate je nach Provider
-        if (window.BauFiRechner.apiProvider === 'openai') {
-            // OpenAI API-Keys beginnen mit 'sk-'
-            isValidFormat = apiKey.startsWith('sk-');
-        } else if (window.BauFiRechner.apiProvider === 'anthropic') {
-            // Einfache Formatprüfung für Claude
-            isValidFormat = /^[a-zA-Z0-9_-]{20,}$/.test(apiKey);
-        } else if (window.BauFiRechner.apiProvider === 'deepseek') {
-            // Einfache Formatprüfung für DeepSeek
-            isValidFormat = /^[a-zA-Z0-9_.-]{16,}$/.test(apiKey);
-        }
-        
-        const isValid = isValidLength && isValidFormat;
-        
-        if (isValid) {
-            // API-Schlüssel speichern
-            if (!window.BauFiRechner) {
-                window.BauFiRechner = {};
-            }
-            window.BauFiRechner.apiKey = apiKey;
-            window.BauFiRechner.datenValidiert = true;
-            
-            showApiStatus(true, 'API-Schlüssel erfolgreich validiert. Plausibilitätsprüfungen und Optimierungsfunktionen sind jetzt verfügbar.');
-            
-            // KI-Check im Analyse-Tab aktualisieren
-            updateKiCheckInAnalyseTab(true);
-        } else {
-            let errorMsg = 'Ungültiger API-Schlüssel. ';
-            if (!isValidLength) {
-                errorMsg += 'Der API-Schlüssel muss mindestens 8 Zeichen lang sein. ';
-            }
-            if (!isValidFormat) {
-                errorMsg += 'Das Format entspricht nicht dem erwarteten Muster für ' + getProviderName(window.BauFiRechner.apiProvider) + '. ';
-            }
-            errorMsg += 'Bitte überprüfen Sie Ihre Eingabe oder wenden Sie sich an den Support.';
-            
-            showApiStatus(false, errorMsg);
-        }
-        
-        // Button zurücksetzen
-        validateButton.textContent = 'Validieren';
-        validateButton.disabled = false;
-    }, 1500);
-}
-
-// API-Status anzeigen
+// Hilfsfunktion zur Anzeige des API-Status - für Kompatibilität mit analysis.js
 function showApiStatus(status, message) {
     const statusDiv = document.getElementById('api-status');
     if (!statusDiv) return;
@@ -221,7 +141,7 @@ function showApiStatus(status, message) {
     }
 }
 
-// KI-Status im Analyse-Tab aktualisieren
+// Hilfsfunktion zur Aktualisierung des KI-Status im Analyse-Tab
 function updateKiCheckInAnalyseTab(isValid) {
     const kiCheckContainer = document.getElementById('ki-check-container');
     if (!kiCheckContainer) return;
@@ -239,7 +159,7 @@ function updateKiCheckInAnalyseTab(isValid) {
     }
 }
 
-// Provider-Name abrufen
+// Hilfsfunktion zum Abrufen des Provider-Namens
 function getProviderName(providerId) {
     switch(providerId) {
         case 'openai': return 'OpenAI (GPT-4)';
