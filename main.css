@@ -1,149 +1,484 @@
 /* main.css */
-/* Styling für den BauFi-Rechner */
+/* Überarbeitetes Design für einen modernen, cleanen Look */
 
-/* Verbesserte Slider */
+/* 1. Globale Stile & Typografie
+-------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: #ffffff; /* Weißer Hintergrund */
+  color: #374151; /* Standard Textfarbe (Grau-700) */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Globale Container-Stile */
+.container {
+  max-width: 72rem; /* Entspricht max-w-6xl, aber in rem für bessere Skalierung */
+}
+
+/* Überschriften */
+h1, h2, h3, h4, h5, h6 {
+  color: #111827; /* Dunkleres Grau (Gray-900) */
+  font-weight: 600; /* Semibold */
+  margin-bottom: 0.75em; /* Etwas Abstand nach Überschriften */
+}
+h1 { font-size: 1.875rem; line-height: 1.2; } /* text-3xl */
+h2 { font-size: 1.25rem; line-height: 1.4; }  /* text-xl */
+h3 { font-size: 1.125rem; line-height: 1.5; } /* text-lg */
+
+p {
+    line-height: 1.6; /* Verbesserte Lesbarkeit für Absätze */
+    margin-bottom: 1rem;
+}
+p.text-xs {
+    line-height: 1.5; /* Kleinere Zeilenhöhe für Hilfetexte */
+    margin-bottom: 0; /* Kein extra Abstand für kleine Hinweise */
+}
+
+/* Links */
+a {
+  color: #2563eb; /* Blue-600 */
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+a:hover {
+  color: #1d4ed8; /* Blue-700 */
+  text-decoration: underline;
+}
+
+/* 2. Layout-Elemente (Tabs, Container, Fieldsets)
+-------------------------------------------------- */
+
+/* Tab Navigation */
+nav ul {
+    background-color: transparent; /* Kein Hintergrund für die Leiste */
+    box-shadow: none;
+    border-bottom: 1px solid #e5e7eb; /* Klare Linie unten (Gray-200) */
+    border-radius: 0; /* Keine abgerundeten Ecken */
+    margin-bottom: 1.5rem; /* Abstand nach unten */
+}
+
+.tab-link {
+    border-bottom-width: 2px;
+    border-color: transparent;
+    padding: 0.75rem 1.25rem; /* py-3 px-5 */
+    color: #6b7280; /* Gray-500 */
+    font-weight: 500; /* Medium */
+    transition: color 0.2s ease, border-color 0.2s ease;
+    background-color: transparent !important; /* Sicherstellen, dass kein Hintergrund */
+}
+.tab-link:hover {
+    color: #1d4ed8; /* Blue-700 */
+    border-bottom-color: #d1d5db; /* Gray-300 als Hover-Indikator */
+}
+.tab-link.active {
+    color: #1d4ed8; /* Blue-700 */
+    font-weight: 600; /* Semibold */
+    border-bottom-color: #1d4ed8; /* Blue-700 */
+}
+
+/* Haupt-Container (Tabs, API-Bereich) */
+.tab-content,
+#api-global-container {
+  background-color: #ffffff; /* Weißer Hintergrund */
+  box-shadow: none; /* Kein Schatten */
+  border: 1px solid #e5e7eb; /* Subtile graue Border (Gray-200) */
+  border-radius: 0.375rem; /* rounded-md */
+  padding: 1.5rem; /* p-6 */
+  margin-bottom: 1.5rem; /* mb-6 */
+}
+
+/* Fieldsets */
+fieldset {
+  border: 1px solid #f3f4f6; /* Sehr helle Border (Gray-100) */
+  background-color: #ffffff; /* Weißer Hintergrund */
+  border-radius: 0.375rem; /* rounded-md */
+  padding: 1rem 1.5rem; /* Mehr horizontaler Padding */
+  margin-bottom: 1.5rem;
+}
+fieldset legend {
+  font-weight: 600; /* Semibold */
+  font-size: 0.875rem; /* text-sm */
+  color: #4b5563; /* Gray-600 */
+  padding: 0 0.5rem;
+  margin-bottom: 0.5rem; /* Kleiner Abstand zur ersten Zeile */
+}
+/* Spezielle Hintergründe entfernen/anpassen */
+fieldset.bg-gray-50,
+fieldset.bg-indigo-50 {
+    background-color: #ffffff;
+     border: 1px solid #e5e7eb; /* Etwas stärkere Border für diese */
+}
+fieldset.bg-indigo-50 legend {
+    color: #4338ca; /* Indigo-700 für Legende */
+}
+
+/* Info/Status Boxen */
+.bg-blue-50.border-blue-200,
+.bg-yellow-50.border-yellow-200,
+.bg-green-50.border-green-200,
+.bg-red-50.border-red-200 {
+  background-color: #f9fafb; /* Einheitlicher heller Hintergrund (Gray-50) */
+  border-width: 1px;
+  border-radius: 0.375rem; /* rounded-md */
+  padding: 1rem; /* p-4 */
+  border-left-width: 4px; /* Akzentlinie links */
+}
+.bg-blue-50.border-blue-200 { border-color: #bfdbfe; border-left-color: #60a5fa; } /* Blue-200 / Blue-400 */
+.bg-yellow-50.border-yellow-200 { border-color: #fef08a; border-left-color: #facc15; } /* Yellow-200 / Yellow-400 */
+.bg-green-50.border-green-200 { border-color: #bbf7d0; border-left-color: #4ade80; } /* Green-200 / Green-400 */
+.bg-red-50.border-red-200 { border-color: #fecaca; border-left-color: #f87171; } /* Red-200 / Red-400 */
+
+/* Textfarben in Info/Status Boxen anpassen */
+.bg-blue-50 .text-blue-800 { color: #1e40af; }
+.bg-yellow-50 .text-yellow-800 { color: #92400e; }
+.bg-green-50 .text-green-800 { color: #065f46; }
+.bg-red-50 .text-red-800 { color: #991b1b; }
+.bg-red-50 .text-red-700 { color: #b91c1c; }
+.bg-red-50 .text-red-600 { color: #dc2626; }
+
+/* Spezieller Stil für API-Provider Auswahl Boxen */
+.provider-option {
+  border: 1px solid #e5e7eb; /* Gray-200 */
+  background-color: #ffffff;
+  box-shadow: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.provider-option:hover {
+  border-color: #93c5fd; /* Blue-300 */
+  background-color: #eff6ff; /* Blue-50 */
+}
+.provider-option.border-blue-500 { /* Aktiver Status */
+  border-color: #3b82f6; /* Blue-500 */
+  background-color: #eff6ff; /* Blue-50 */
+  box-shadow: 0 0 0 1px #3b82f6; /* Ring-Effekt ersetzen */
+  /* Entferne Tailwind Ring-Klassen falls noch im HTML */
+}
+
+/* 3. Formular-Elemente
+-------------------------------------------------- */
+
+label {
+  display: block;
+  font-weight: 500; /* Medium */
+  color: #4b5563; /* Gray-600 */
+  margin-bottom: 0.375rem; /* mb-1.5 */
+  font-size: 0.875rem; /* text-sm */
+}
+
+input[type="text"],
+input[type="number"],
+input[type="password"],
+select {
+  display: block;
+  width: 100%;
+  border: 1px solid #d1d5db; /* Gray-300 */
+  border-radius: 0.375rem; /* rounded-md */
+  padding: 0.5rem 0.75rem; /* p-2 px-3 */
+  box-shadow: none; /* Kein Schatten */
+  font-size: 0.875rem; /* text-sm */
+  line-height: 1.25rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+/* Einheitliche Höhe für Selects und Inputs */
+input[type="text"],
+input[type="number"],
+input[type="password"] {
+    height: 2.5rem; /* H-10 Äquivalent */
+}
+select {
+    height: 2.5rem;
+    padding-right: 2.5rem; /* Platz für Pfeil */
+    background-position: right 0.75rem center;
+     background-size: 1.5em 1.5em;
+}
+
+input:focus,
+select:focus {
+  border-color: #3b82f6; /* Blue-500 */
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); /* Leichter Fokusring */
+  outline: none;
+}
+
+/* Spezifische Input Anpassungen */
+input[type="number"].text-right {
+    text-align: right;
+}
+
+/* Readonly/Disabled Felder */
+input:disabled, select:disabled {
+    background-color: #f3f4f6; /* Gray-100 */
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+input[readonly] {
+     background-color: #f3f4f6; /* Gray-100 */
+}
+
+/* Checkboxen (wenn Tailwind Forms Plugin nicht genutzt wird) */
+input[type="checkbox"].form-checkbox {
+    border-radius: 0.25rem;
+    border-color: #d1d5db;
+    color: #3b82f6; /* Farbe des Hakens */
+}
+input[type="checkbox"].form-checkbox:focus {
+     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+     border-color: #3b82f6;
+}
+
+
+/* Range Slider */
 input[type="range"] {
     -webkit-appearance: none;
-    height: 8px;
-    background: #e5e7eb;
-    border-radius: 4px;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: #e5e7eb; /* Gray-200 */
+    border-radius: 3px;
     outline: none;
+    cursor: pointer;
+    padding: 0; /* Kein Padding für Range */
 }
-
 input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
-    background: #3b82f6;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #3b82f6; /* Blue-500 */
     border-radius: 50%;
     cursor: pointer;
+    margin-top: -5px; /* Vertikal zentrieren */
 }
-
 input[type="range"]::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    background: #3b82f6;
+    width: 16px;
+    height: 16px;
+    background: #3b82f6; /* Blue-500 */
     border-radius: 50%;
     cursor: pointer;
     border: none;
 }
-
-/* Verbesserte Ergebnisdarstellung */
-.text-2xl.font-bold {
-    color: #1e40af;
+input[type="range"]:focus {
+    box-shadow: none; /* Kein Fokus-Ring für Slider selbst */
+}
+input[type="range"]:focus::-webkit-slider-thumb {
+     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); /* Fokus-Ring am Thumb */
+}
+input[type="range"]:focus::-moz-range-thumb {
+     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
 }
 
-/* Tab Navigation Styling */
-.tab-link {
-    transition: all 0.2s ease;
+
+/* Ausgabe-Felder (z.B. berechnete Werte) */
+.bg-gray-100.border.rounded,
+.bg-gray-100.darlehen-rate,
+.bg-gray-100.darlehen-restschuld {
+    background-color: #f9fafb; /* Gray-50 für leichten Kontrast */
+    border-color: #e5e7eb; /* Gray-200 */
+    padding: 0.5rem 0.75rem;
+    min-height: 2.5rem; /* h-10 Äquivalent */
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* Standardmäßig rechtsbündig */
+    font-size: 0.875rem;
+}
+.font-mono { /* Beibehalten für Zahlen, falls gewünscht */
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
-.tab-link.active {
-    background-color: #fff;
-    border-color: #e5e7eb;
-    border-bottom-color: transparent;
-    color: #1e40af;
-    font-weight: 600;
-}
+/* 4. Buttons
+-------------------------------------------------- */
 
-.tab-link:not(.active) {
-    color: #6b7280;
-}
-
-.tab-link:hover:not(.active) {
-    background-color: #f3f4f6;
-}
-
-/* Animation für Buttons */
 button {
-    transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem; /* rounded-md */
+  border: 1px solid transparent;
+  padding: 0.5rem 1rem; /* Einheitlicher Padding */
+  font-weight: 500; /* Medium */
+  font-size: 0.875rem; /* text-sm */
+  line-height: 1.25rem;
+  box-shadow: none; /* Kein Schatten */
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
 }
-
-button:hover {
-    transform: translateY(-1px);
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4); /* Blauer Fokusring */
 }
-
 button:active {
-    transform: translateY(1px);
+  transform: translateY(1px); /* Leichter Klick-Effekt */
+}
+button:disabled, button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
-/* API Provider Styling */
-#openai-provider:hover, #anthropic-provider:hover, #deepseek-provider:hover {
-    border-color: #3b82f6;
-    background-color: #f0f7ff;
+/* Primär-Aktion (Blau) */
+.bg-blue-600 { background-color: #2563eb !important; color: white !important; }
+.bg-blue-600:hover { background-color: #1d4ed8 !important; }
+
+/* Sekundär/Zurück-Aktion (Grau) */
+.bg-gray-300 {
+  background-color: #ffffff !important;
+  color: #374151 !important; /* Gray-700 */
+  border-color: #d1d5db !important; /* Gray-300 */
+}
+.bg-gray-300:hover {
+  background-color: #f9fafb !important; /* Gray-50 */
+  border-color: #9ca3af !important; /* Gray-400 */
 }
 
-#openai-provider.border-blue-500, #anthropic-provider.border-blue-500, #deepseek-provider.border-blue-500 {
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+/* Gefahr/Löschen (Rot) */
+.bg-red-600 { background-color: #dc2626 !important; color: white !important; }
+.bg-red-600:hover { background-color: #b91c1c !important; }
+
+/* Erfolg/Hinzufügen (Grün) */
+.bg-green-600 { background-color: #16a34a !important; color: white !important; }
+.bg-green-600:hover { background-color: #15803d !important; }
+
+/* Spezial (Indigo für Lage-Button) */
+.bg-indigo-600 { background-color: #4f46e5 !important; color: white !important; }
+.bg-indigo-600:hover { background-color: #4338ca !important; }
+
+/* Kleinere Buttons (z.B. Hinzufügen, Validieren neben Input) */
+.text-sm.px-3.py-1\.5, /* Darlehen hinzufügen */
+.px-4.py-2.rounded-r-md /* Validieren */
+ {
+    padding: 0.375rem 0.75rem; /* Etwas kleiner */
+}
+.text-xs /* Neue Analyse */ {
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
 }
 
-/* Detailed Object Data Toggle */
-.detailed-object-data {
-    transition: all 0.3s ease;
-}
 
-/* Darlehen Block Styling */
+/* 5. Spezifische Komponenten
+-------------------------------------------------- */
+
+/* Darlehen Block */
 .darlehen-block {
-    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb; /* Gray-200 */
+    background-color: #ffffff;
+    box-shadow: none;
+    padding: 1.25rem; /* Etwas mehr Padding innen */
 }
-
-.darlehen-block:hover {
-    background-color: #f9fafb;
-}
-
 .darlehen-remove {
-    opacity: 0.6;
+    opacity: 0.5;
     transition: opacity 0.2s ease;
 }
-
-.darlehen-remove:hover {
-    opacity: 1;
-}
+.darlehen-remove:hover { opacity: 1; }
 
 /* Analyse Optionen */
-#marktdaten-analyse, #belastungs-analyse, #optimierungs-analyse, #vollstaendige-analyse {
-    cursor: pointer;
-    transition: all 0.2s ease;
+#analyse-optionen > div { /* Direkte Kinder ansprechen */
+    border: 1px solid #e5e7eb; /* Gray-200 */
+    background-color: #ffffff;
+    box-shadow: none;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+#analyse-optionen > div:hover {
+    border-color: #93c5fd; /* Blue-300 */
+    background-color: #eff6ff; /* Blue-50 */
 }
 
-#marktdaten-analyse:hover, #belastungs-analyse:hover, #optimierungs-analyse:hover, #vollstaendige-analyse:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+/* Ergebnis Container */
+#analyse-ergebnis-container {
+    background-color: #f9fafb; /* Gray-50 */
+    border-color: #e5e7eb; /* Gray-200 */
+}
+#analyse-inhalt h3, #analyse-inhalt h4 { /* Überschriften im Ergebnis */
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+#analyse-inhalt h3:first-child, #analyse-inhalt h4:first-child {
+    margin-top: 0;
 }
 
-/* Responsive Anpassungen */
+/* Tilgungsplan Tabelle */
+#tilgungsplanContainerAnalyse table {
+    border: 1px solid #e5e7eb;
+    box-shadow: none;
+}
+#tilgungsplanContainerAnalyse th, #tilgungsplanContainerAnalyse td {
+    border: none; /* Tailwind borders entfernen */
+    border-bottom: 1px solid #f3f4f6; /* Leichte Linie zwischen Zeilen (Gray-100) */
+    padding: 0.75rem 1rem; /* Mehr Padding */
+    font-size: 0.875rem;
+}
+#tilgungsplanContainerAnalyse thead th {
+    background-color: #f9fafb; /* Gray-50 */
+    color: #4b5563; /* Gray-600 */
+    font-weight: 600; /* Semibold */
+    text-transform: none; /* Kein uppercase */
+    letter-spacing: normal;
+    border-bottom-width: 2px;
+    border-bottom-color: #e5e7eb; /* Gray-200 */
+}
+#tilgungsplanContainerAnalyse tbody tr:last-child td {
+    border-bottom: none;
+}
+#tilgungsplanContainerAnalyse tbody tr:nth-child(even) {
+     background-color: #f9fafb; /* Zebra-Stripes dezent */
+}
+#tilgungsplanContainerAnalyse tbody tr:hover {
+     background-color: #eff6ff; /* Blue-50 */
+}
+#tilgungsplanContainerAnalyse .bg-yellow-50 td,
+#tilgungsplanContainerAnalyse .bg-green-50 td {
+    background-color: inherit; /* Hintergrund von Zelle übernehmen */
+}
+
+/* 6. Responsive Anpassungen
+-------------------------------------------------- */
 @media (max-width: 768px) {
     .container {
-        padding: 0.5rem;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
     }
-    
-    h1 {
-        font-size: 1.5rem;
-    }
-    
-    .p-6 {
+    h1 { font-size: 1.5rem; } /* text-2xl */
+    h2 { font-size: 1.125rem; } /* text-lg */
+    .tab-content, #api-global-container, fieldset {
         padding: 1rem;
     }
-    
-    .text-2xl {
-        font-size: 1.25rem;
-    }
-    
-    .grid-cols-2, .grid-cols-3, .grid-cols-4 {
-        grid-template-columns: 1fr;
-    }
-    
-    /* Verbesserte Darstellung auf kleinen Bildschirmen */
     .tab-link {
-        font-size: 0.9rem;
-        padding: 0.5rem 0.75rem;
+        padding: 0.625rem 0.75rem; /* Etwas kompakter */
+        font-size: 0.875rem;
     }
-    
-    input[type="range"] {
-        width: 100%;
+    button {
+        padding: 0.5rem 0.875rem; /* Buttons etwas kleiner */
     }
-    
-    .darlehen-block .grid {
-        grid-template-columns: 1fr;
+    .grid-cols-2, .grid-cols-3, .grid-cols-4 {
+        grid-template-columns: 1fr; /* Alles untereinander auf kleinen Schirmen */
     }
+    /* Spezifische Grid-Anpassungen aufheben, falls nötig */
+    .darlehen-block .grid { /* Darlehen-Felder bleiben ggf. nebeneinander */
+         grid-template-columns: 1fr; /* Oder doch untereinander? Testen! */
+    }
+    #overview .grid-cols-2 {
+         grid-template-columns: 1fr; /* Übersicht auch untereinander */
+    }
+    #costs .grid-cols-4 {
+         grid-template-columns: 1fr; /* Kostenübersicht untereinander */
+    }
+     #financing .grid-cols-4 {
+          grid-template-columns: 1fr; /* Finanzierungsübersicht untereinander */
+     }
+     #financing .grid-cols-3 { /* Haushaltsdaten */
+           grid-template-columns: 1fr;
+      }
+      #analysis .grid-cols-2 { /* Analyse Optionen */
+           grid-template-columns: 1fr;
+       }
 }
+
+/* Hilfsklassen (falls benötigt) */
+.font-semibold { font-weight: 600 !important; }
+.font-bold { font-weight: 700 !important; }
+.text-red-600 { color: #dc2626 !important; }
+.text-green-600 { color: #16a34a !important; }
+.text-blue-700 { color: #1d4ed8 !important; }
+/* ... weitere Hilfsklassen bei Bedarf ... */
