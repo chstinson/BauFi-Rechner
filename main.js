@@ -178,8 +178,8 @@ function observeDataChanges() {
         'kaufpreis', 'wohnflaeche', 'eigenkapital', 'foerdermittel',
         'modernisierungskosten', 'moebel_kosten', 'umzugskosten', 'sonstige_kosten',
         'grunderwerbsteuer_prozent', 'notar_prozent', 'makler_prozent',
-        'objekttyp', 'nutzungsart', 'plz', 'ort', 'bundesland', 'lage', 'baujahr', 'zustand' // Objekt-Felder für Übersicht
-        // Fügen Sie weitere IDs hinzu, falls nötig
+        'objekttyp', 'nutzungsart', 'plz', 'ort', 'bundesland', 'lage', 'baujahr', 'zustand', // Objekt-Felder für Übersicht
+        'monatliches-haushaltsnettoeinkommen', 'monatliche-kreditraten', 'anzahl-kinder' // Haushaltsdaten
     ];
 
     inputsToObserve.forEach(inputId => {
@@ -241,15 +241,13 @@ function observeDataChanges() {
              // Ggf. weitere spezifische Updates für Kapitalanlage-Felder in costs.js triggern
               if (typeof initCostsData === 'function') {
                   // Workaround: updateMietrendite wird innerhalb von initCostsData registriert
-                  // Wir könnten updateMietrendite global machen, oder hier einen Weg finden, es zu triggern.
-                  // Einfachster Weg: Daten neu holen und Rendite neu berechnen lassen
                   const kaufpreisInput = document.getElementById('kaufpreis');
-                  const kaltmieteInput = document.getElementById('kaltmiete'); // Wird in object.js getoggled
-                  if (kaufpreisInput && kaltmieteInput && typeof updateMietrendite === 'function') {
-                      // updateMietrendite(); // Direkt aufrufen, wenn global verfügbar
-                      // Alternative: Event simulieren (weniger sauber)
-                      // kaufpreisInput.dispatchEvent(new Event('input'));
-                  }
+                  const kaltmieteInput = document.getElementById('kaltmiete');
+                  const mietrenditeOutput = document.getElementById('mietrendite');
+                   // Prüfen ob die Funktion global verfügbar ist oder direkt aufgerufen werden kann
+                   // Wir gehen davon aus, dass die Funktion updateMietrendite durch die EventListener in costs.js getriggert wird,
+                   // wenn sich kaufpreis oder kaltmiete ändern. Ein expliziter Aufruf hier ist ggf. nicht nötig oder doppelt.
+                   // Wichtig ist, dass die Sichtbarkeit der Felder korrekt gesteuert wird (object.js).
               }
          });
      }
