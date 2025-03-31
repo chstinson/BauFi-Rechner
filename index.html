@@ -10,7 +10,7 @@
     <!-- Eigene CSS - nach Tailwind und Font Awesome -->
     <link rel="stylesheet" href="main.css">
 </head>
-<body class="bg-gray-100">
+<body class=""> <!-- bg-gray-100 entfernt -->
     <div class="container mx-auto p-4 max-w-6xl">
         <header class="mb-6">
             <h1 class="text-3xl font-bold text-center my-6 text-gray-800">BauFi-Rechner</h1>
@@ -19,7 +19,8 @@
 
         <!-- Hauptnavigation -->
         <nav class="mb-6">
-            <ul class="flex flex-wrap border-b border-gray-200 bg-gray-50 rounded-t-lg shadow-sm">
+             <!-- Klassen bg-gray-50, rounded-t-lg, shadow-sm entfernt -->
+            <ul class="flex flex-wrap border-b border-gray-200">
                  <li class="mr-1 -mb-px">
                      <a href="#overview" class="tab-link active inline-block py-3 px-5 font-semibold text-blue-600 border-b-2 border-blue-500 rounded-tl-lg" data-target="overview">
                          <i class="fas fa-home mr-2 opacity-90"></i>Übersicht
@@ -49,8 +50,8 @@
         </nav>
 
        <!-- API-Integration (global) -->
-       <div id="api-global-container" class="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
-           <!-- ... (Inhalt API Bereich unverändert) ... -->
+       <!-- Klassen shadow-md, border, border-gray-200 entfernt -->
+       <div id="api-global-container" class="bg-white rounded-lg p-6 mb-6">
             <div class="flex justify-between items-center cursor-pointer" id="api-toggle-header">
                 <h2 class="text-xl font-semibold text-gray-700">KI-gestützte Plausibilisierung & Marktdaten</h2>
                 <i class="fas fa-chevron-down text-gray-500" id="api-toggle-icon"></i>
@@ -111,9 +112,9 @@
         <!-- Tab-Inhalte Container -->
         <div class="tab-contents">
             <!-- Übersicht Tab -->
-            <div id="overview" class="tab-content active bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
+             <!-- Klassen shadow-md, border, border-gray-200 entfernt -->
+            <div id="overview" class="tab-content active bg-white rounded-lg p-6 mb-6">
                 <h2 class="text-xl font-semibold mb-6 text-gray-700 border-b pb-3">Übersicht Ihrer Baufinanzierung</h2>
-                <!-- ... (Inhalt Übersicht unverändert) ... -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <!-- Linke Spalte: Immobiliendaten -->
                     <div>
@@ -167,7 +168,7 @@
                         Füllen Sie die Objektdaten und Finanzierungsdetails aus, um hier eine automatische Ersteinschätzung zu erhalten.
                     </div>
                 </div>
-                 <!-- Kurzanleitung - GEÄNDERT -->
+                 <!-- Kurzanleitung -->
                  <div class="p-4 bg-blue-50 border border-blue-200 rounded">
                       <h3 class="font-semibold mb-2 text-blue-800"><i class="fas fa-info-circle mr-1"></i>Anleitung</h3>
                       <ol class="list-decimal pl-5 text-sm text-blue-700 space-y-1">
@@ -180,9 +181,10 @@
             </div>
 
             <!-- Objekt Tab -->
-            <div id="property" class="tab-content hidden bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
-                 <!-- ... (Inhalt Objekt unverändert) ... -->
+             <!-- Klassen shadow-md, border, border-gray-200 entfernt -->
+            <div id="property" class="tab-content hidden bg-white rounded-lg p-6 mb-6">
                  <h2 class="text-xl font-semibold mb-6 text-gray-700 border-b pb-3">Objektdaten</h2>
+                 <!-- Basis-Objektdaten -->
                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                      <div>
                          <label class="block text-sm font-medium mb-1 text-gray-600" for="objekttyp">Objekttyp</label>
@@ -213,6 +215,7 @@
                          <p class="text-xs text-gray-500 mt-1">Bei Eigentumswohnung 0 oder Anteil eingeben.</p>
                      </div>
                  </div>
+                 <!-- Standortdaten -->
                  <fieldset class="mb-6 p-4 border rounded border-gray-300">
                      <legend class="font-medium px-2 text-gray-600">Standort</legend>
                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -272,7 +275,7 @@
                  <button id="toggle-detailed-view" class="mb-4 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition w-full text-sm border border-gray-300">
                      <i class="fas fa-chevron-down mr-2"></i>Mehr Objektdetails anzeigen/ausblenden
                  </button>
-                 <fieldset class="mb-4 p-4 border rounded border-gray-300 detailed-object-data hidden bg-gray-50">
+                 <fieldset class="mb-4 p-4 border rounded border-gray-300 detailed-object-data hidden bg-gray-50"> <!-- bg-gray-50 hier ok für Kontrast -->
                      <legend class="font-medium px-2 text-gray-600">Objektdetails</legend>
                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div>
@@ -321,7 +324,8 @@
                          </div>
                      </div>
                  </fieldset>
-                 <fieldset class="mb-4 p-4 border rounded border-gray-300 kapitalanlage-field hidden bg-indigo-50">
+                 <!-- Klasse bg-indigo-50 entfernt -->
+                 <fieldset class="mb-4 p-4 border rounded border-gray-300 kapitalanlage-field hidden">
                      <legend class="font-medium px-2 text-indigo-700">Kapitalanlage Details</legend>
                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -339,15 +343,16 @@
                  </fieldset>
                  <div class="mt-6 flex justify-between items-center border-t pt-4">
                      <span class="text-sm text-gray-500 italic">Schritt 1 / 4</span>
-                     <button id="to-costs-tab" class="px-5 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition duration-150">
+                     <!-- Klasse shadow entfernt -->
+                     <button id="to-costs-tab" class="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition duration-150">
                          Weiter zu Kosten <i class="fas fa-arrow-right ml-2"></i>
                      </button>
                  </div>
             </div>
 
             <!-- Kosten Tab -->
-            <div id="costs" class="tab-content hidden bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
-                 <!-- ... (Inhalt Kosten unverändert) ... -->
+             <!-- Klassen shadow-md, border, border-gray-200 entfernt -->
+            <div id="costs" class="tab-content hidden bg-white rounded-lg p-6 mb-6">
                   <h2 class="text-xl font-semibold mb-6 text-gray-700 border-b pb-3">Kosten</h2>
                   <fieldset class="mb-6 p-4 border rounded border-gray-300">
                       <legend class="font-medium px-2 text-gray-600">Kaufpreisdaten</legend>
@@ -443,7 +448,8 @@
                           </div>
                       </div>
                   </fieldset>
-                  <div class="p-4 border-t border-b border-gray-300 mb-6 bg-gray-50">
+                   <!-- Klasse bg-gray-50 entfernt -->
+                  <div class="p-4 border-t border-b border-gray-300 mb-6">
                        <h3 class="font-semibold mb-3 text-lg text-gray-700 text-center">Gesamtkostenübersicht</h3>
                       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                           <div class="text-center">
@@ -465,23 +471,24 @@
                       </div>
                   </div>
                   <div class="mt-6 flex justify-between items-center border-t pt-4">
-                       <button id="to-property-tab" class="px-5 py-2 bg-gray-300 text-gray-700 rounded-md shadow hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 transition duration-150">
+                      <!-- Klasse shadow entfernt -->
+                       <button id="to-property-tab" class="px-5 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 transition duration-150">
                            <i class="fas fa-arrow-left mr-2"></i> Zurück zu Objekt
                       </button>
                        <span class="text-sm text-gray-500 italic">Schritt 2 / 4</span>
-                      <button id="to-financing-tab" class="px-5 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition duration-150">
+                      <!-- Klasse shadow entfernt -->
+                      <button id="to-financing-tab" class="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition duration-150">
                           Weiter zu Finanzierung <i class="fas fa-arrow-right ml-2"></i>
                       </button>
                   </div>
              </div>
 
-            <!-- Finanzierung Tab - GEÄNDERT -->
-            <div id="financing" class="tab-content hidden bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
+            <!-- Finanzierung Tab -->
+             <!-- Klassen shadow-md, border, border-gray-200 entfernt -->
+            <div id="financing" class="tab-content hidden bg-white rounded-lg p-6 mb-6">
                  <h2 class="text-xl font-semibold mb-6 text-gray-700 border-b pb-3">Finanzierungsstruktur & Haushalt</h2>
-
-                 <!-- Gesamtkosten Übersicht -->
-                 <fieldset class="mb-6 p-4 border rounded border-gray-300 bg-gray-50">
-                    <!-- ... (Inhalt Gesamtkosten unverändert) ... -->
+                 <!-- Klasse bg-gray-50 entfernt -->
+                 <fieldset class="mb-6 p-4 border rounded border-gray-300">
                      <legend class="font-medium px-2 text-gray-600">Gesamtkosten (aus vorherigem Schritt)</legend>
                      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                           <div class="text-center">
@@ -502,10 +509,7 @@
                          </div>
                      </div>
                  </fieldset>
-
-                 <!-- Eigenkapital Eingabe -->
                  <fieldset class="mb-6 p-4 border rounded border-gray-300">
-                     <!-- ... (Inhalt Eigenmittel unverändert) ... -->
                       <legend class="font-medium px-2 text-gray-600">Eigenmittel</legend>
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4">
                          <div>
@@ -532,13 +536,11 @@
                          </div>
                      </div>
                  </fieldset>
-
-                 <!-- Multi-Darlehen-System -->
                  <div class="mb-6">
-                     <!-- ... (Inhalt Darlehen unverändert) ... -->
                      <div class="flex justify-between items-center mb-3 border-t pt-4">
                          <h3 class="font-semibold text-lg text-gray-700">Finanzierungsbausteine (Darlehen)</h3>
-                         <button id="add-darlehen" class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 transition duration-150">
+                         <!-- Klasse shadow entfernt -->
+                         <button id="add-darlehen" class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 transition duration-150">
                              <i class="fas fa-plus mr-1"></i> Darlehen hinzufügen
                          </button>
                      </div>
@@ -620,11 +622,8 @@
                          </div>
                      </div>
                  </div>
-
-                 <!-- =========================================== -->
-                 <!-- NEU: Haushaltsdaten-Abschnitt HIER EINGEFÜGT -->
-                 <!-- =========================================== -->
-                 <fieldset class="my-8 p-4 border rounded border-gray-300 bg-gray-50"> <!-- my-8 für Abstand -->
+                 <!-- Klasse bg-gray-50 entfernt -->
+                 <fieldset class="my-8 p-4 border rounded border-gray-300">
                      <legend class="font-medium px-2 text-gray-700">Haushaltsdaten für Belastbarkeitsanalyse</legend>
                      <p class="text-xs text-gray-500 mb-3 px-2">Diese Daten werden für die Belastbarkeits- und die vollständige Analyse benötigt und fließen nur in die KI-Analyse ein.</p>
                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -651,12 +650,7 @@
                          </div>
                      </div>
                  </fieldset>
-                 <!-- =========================================== -->
-                 <!-- Ende Haushaltsdaten                      -->
-                 <!-- =========================================== -->
-
-                 <!-- Zusammenfassung der Finanzierung -->
-                  <div class="p-4 border rounded mb-6 bg-blue-50 border-blue-200"> <!-- mb-6 für Abstand vor Button -->
+                 <div class="p-4 border rounded mb-6 bg-blue-50 border-blue-200">
                      <h3 class="font-semibold mb-3 text-lg text-blue-800 text-center">Gesamtfinanzierung</h3>
                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                          <div class="p-3 bg-white rounded border border-blue-100 text-center">
@@ -674,36 +668,34 @@
                          </div>
                      </div>
                  </div>
-                 <!-- Navigation -->
                  <div class="mt-6 flex justify-between items-center border-t pt-4">
-                     <button id="to-costs-tab-back" class="px-5 py-2 bg-gray-300 text-gray-700 rounded-md shadow hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 transition duration-150">
+                      <!-- Klasse shadow entfernt -->
+                     <button id="to-costs-tab-back" class="px-5 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 transition duration-150">
                          <i class="fas fa-arrow-left mr-2"></i> Zurück zu Kosten
                      </button>
                      <span class="text-sm text-gray-500 italic">Schritt 3 / 4</span>
-                     <button id="to-analysis-tab" class="px-5 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition duration-150">
+                      <!-- Klasse shadow entfernt -->
+                     <button id="to-analysis-tab" class="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition duration-150">
                          Weiter zur Analyse <i class="fas fa-arrow-right ml-2"></i>
                      </button>
                  </div>
              </div>
 
-            <!-- Analyse Tab - GEÄNDERT: Haushaltsdaten entfernt -->
-            <div id="analysis" class="tab-content hidden bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
+            <!-- Analyse Tab -->
+             <!-- Klassen shadow-md, border, border-gray-200 entfernt -->
+            <div id="analysis" class="tab-content hidden bg-white rounded-lg p-6 mb-6">
                  <h2 class="text-xl font-semibold mb-6 text-gray-700 border-b pb-3">Analyse & Optimierung</h2>
-
                  <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded">
                       <p class="text-sm text-blue-800">
                          <i class="fas fa-lightbulb mr-1"></i> Lassen Sie Ihre Finanzierungsdaten von einer KI analysieren, um Marktgerechtigkeit, Belastbarkeit und Optimierungspotenzial zu prüfen.
                       </p>
                       <p class="text-xs text-blue-700 mt-1">Stellen Sie sicher, dass alle Daten in den vorherigen Tabs sowie die Haushaltsdaten im Finanzierung-Tab korrekt eingegeben wurden.</p>
                   </div>
-
-                 <!-- KI-Status Prüfung -->
                  <div id="ki-check-container" class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
-                    <!-- ... (Inhalt wird durch JS befüllt) ... -->
+                    <p class="text-sm text-yellow-800">
+                        <i class="fas fa-exclamation-triangle mr-2"></i> Bitte wählen Sie einen API-Provider und validieren Sie Ihren API-Schlüssel im globalen API-Bereich oben, um die Analysefunktionen zu nutzen.
+                    </p>
                  </div>
-
-                 <!-- Haushaltsdaten-Abschnitt HIER ENTFERNT -->
-
                  <!-- Analyse-Optionen -->
                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" id="analyse-optionen">
                       <div class="border rounded-lg p-4 transition duration-200 bg-gray-100 opacity-50 cursor-not-allowed" id="marktdaten-analyse">
@@ -735,7 +727,6 @@
                           <p class="text-sm text-gray-600">Umfassende Prüfung aller Aspekte und Risiken.</p>
                       </div>
                   </div>
-
                  <!-- Analyse-Ergebnis-Container -->
                  <div id="analyse-ergebnis-container" class="hidden border rounded border-gray-300 p-4 bg-gray-50">
                        <div class="flex justify-between items-center mb-4 border-b pb-2">
@@ -748,18 +739,17 @@
                           <!-- Wird durch JS befüllt -->
                       </div>
                   </div>
-
                  <!-- Tilgungsplan Abschnitt -->
                  <div class="mt-8 border-t pt-6">
-                      <button id="showTilgungsplanAnalyse" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition duration-150">
+                      <!-- Klasse shadow entfernt -->
+                      <button id="showTilgungsplanAnalyse" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition duration-150">
                           <i class="fas fa-table mr-2"></i> Tilgungsplan anzeigen/ausblenden
                       </button>
                   </div>
-
                  <!-- Tilgungsplan Container -->
                  <div id="tilgungsplanContainerAnalyse" class="mt-6 hidden">
                       <h3 class="text-lg font-semibold mb-3 text-gray-700">Tilgungsplan (vereinfacht, max. Zinsbindung / 15 J.)</h3>
-                      <div class="overflow-x-auto shadow rounded-lg border">
+                      <div class="overflow-x-auto shadow rounded-lg border"> <!-- Schatten hier ok -->
                           <table class="min-w-full bg-white">
                               <thead class="bg-gray-100">
                                   <tr>
@@ -776,14 +766,15 @@
                           </table>
                       </div>
                   </div>
-
                  <!-- Navigation -->
                  <div class="mt-6 flex justify-between items-center border-t pt-4">
-                      <button id="to-financing-tab-back" class="px-5 py-2 bg-gray-300 text-gray-700 rounded-md shadow hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 transition duration-150">
+                       <!-- Klasse shadow entfernt -->
+                      <button id="to-financing-tab-back" class="px-5 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 transition duration-150">
                           <i class="fas fa-arrow-left mr-2"></i> Zurück zu Finanzierung
                      </button>
                       <span class="text-sm text-gray-500 italic">Schritt 4 / 4</span>
-                     <button id="reset-calculator" class="px-5 py-2 bg-red-600 text-white rounded-md shadow hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition duration-150">
+                      <!-- Klasse shadow entfernt -->
+                     <button id="reset-calculator" class="px-5 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition duration-150">
                          <i class="fas fa-trash-alt mr-2"></i> Rechner zurücksetzen
                      </button>
                  </div>
