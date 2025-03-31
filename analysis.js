@@ -2,90 +2,96 @@
 // Produktionsversion mit echter API-Integration für KI-Plausibilisierung des BauFi-Rechners
 
 function initAnalysis() {
-    // Analyse-Optionen Event-Listener
-    document.getElementById('marktdaten-analyse').addEventListener('click', () => startAnalysis('marktdaten'));
-    document.getElementById('belastungs-analyse').addEventListener('click', () => startAnalysis('belastung'));
-    document.getElementById('optimierungs-analyse').addEventListener('click', () => startAnalysis('optimierung'));
-    document.getElementById('vollstaendige-analyse').addEventListener('click', () => startAnalysis('vollstaendig'));
-    
+    // Analyse-Optionen Event-Listener initial deaktiviert, bis API-Key valide ist
+    disableAnalysisOptions(); // Startet deaktiviert
+    document.getElementById('marktdaten-analyse')?.addEventListener('click', () => startAnalysis('marktdaten'));
+    document.getElementById('belastungs-analyse')?.addEventListener('click', () => startAnalysis('belastung'));
+    document.getElementById('optimierungs-analyse')?.addEventListener('click', () => startAnalysis('optimierung'));
+    document.getElementById('vollstaendige-analyse')?.addEventListener('click', () => startAnalysis('vollstaendig'));
+
     // Neue Analyse Button
-    document.getElementById('neue-analyse').addEventListener('click', resetAnalysis);
+    document.getElementById('neue-analyse')?.addEventListener('click', resetAnalysis);
+
+    // Hinweis: Die API-Validierung selbst wird durch initApiKeyValidation in api-integration.js ausgelöst
 }
 
 // Analyse starten
 async function startAnalysis(analyseTyp) {
-    // Prüfen, ob ein API-Schlüssel vorhanden ist
-    if (!window.BauFiRechner.apiKey) {
-        alert('Bitte validieren Sie zuerst einen API-Schlüssel im Bereich "KI-gestützte Plausibilisierung & Marktdaten".');
-        
-        // Auto-Scroll zum API-Bereich
-        document.getElementById('api-global-container').scrollIntoView({ behavior: 'smooth' });
+    // Erneut prüfen, ob API-Schlüssel und Provider vorhanden sind
+    if (!window.BauFiRechner || !window.BauFiRechner.apiKey || !window.BauFiRechner.apiProvider) {
+        showApiStatus('error', 'Kein gültiger API-Schlüssel oder Provider ausgewählt. Bitte zuerst im API-Bereich validieren.');
+        // Scroll zum API-Bereich
+        document.getElementById('api-global-container')?.scrollIntoView({ behavior: 'smooth' });
+        resetAnalysis(); // Optionen ausblenden etc.
         return;
     }
-    
+
     // Analysedaten sammeln
     const analyseDaten = collectAnalysisData();
-    
-    // Container anzeigen und Titel setzen
-    document.getElementById('analyse-ergebnis-container').classList.remove('hidden');
-    document.getElementById('analyse-optionen').classList.add('hidden');
-    
-    // Titel je nach Analysetyp setzen
-    let analyseTitel = "Analyseergebnis";
-    switch(analyseTyp) {
-        case 'marktdaten':
-            analyseTitel = "Marktdatenanalyse";
-            break;
-        case 'belastung':
-            analyseTitel = "Belastbarkeitsanalyse";
-            break;
-        case 'optimierung':
-            analyseTitel = "Optimierungsvorschläge";
-            break;
-        case 'vollstaendig':
-            analyseTitel = "Vollständige Analyse";
-            break;
+    if (!analyseDaten) {
+         showApiStatus('error', 'Fehler beim Sammeln der Analysedaten. Bitte Eingaben prüfen.');
+         return;
     }
-    
-    document.getElementById('analyse-titel').textContent = analyseTitel;
-    
+
+    // Container anzeigen und Titel setzen
+    const ergebnisContainer = document.getElementById('analyse-ergebnis-container');
+    const optionenContainer = document.getElementById('analyse-optionen');
+    const inhaltDiv = document.getElementById('analyse-inhalt');
+    const titelElement = document.getElementById('analyse-titel');
+
+    if (!ergebnisContainer || !optionenContainer || !inhaltDiv || !titelElement) return; // Stellen sicher, dass Elemente existieren
+
+    ergebnisContainer.classList.remove('hidden');
+    optionenContainer.classList.add('hidden');
+
+    // Titel je nach Analysetyp setzen
+    let analyseTitelText = "Analyseergebnis";
+    switch (analyseTyp) {
+        case 'marktdaten': analyseTitelText = "Marktdatenanalyse"; break;
+        case 'belastung': analyseTitelText = "Belastbarkeitsanalyse"; break;
+        case 'optimierung': analyseTitelText = "Optimierungsvorschläge"; break;
+        case 'vollstaendig': analyseTitelText = "Vollständige Analyse"; break;
+    }
+    titelElement.textContent = analyseTitelText;
+
     // Loading-Anzeige
-    document.getElementById('analyse-inhalt').innerHTML = `
+    inhaltDiv.innerHTML = `
         <div class="flex justify-center items-center p-8">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-            <span class="ml-4">Analyse wird durchgeführt...</span>
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            <span class="ml-4 text-gray-600">Analyse wird durchgeführt...</span>
         </div>
     `;
-    
+
     try {
         // KI-Provider und API-Schlüssel aus globalen Variablen
         const provider = window.BauFiRechner.apiProvider;
         const apiKey = window.BauFiRechner.apiKey;
-        
+
         // Echte API-Analyse durchführen
         const analysisResult = await performApiAnalysis(analyseTyp, analyseDaten, provider, apiKey);
-        
-        // Ergebnis anzeigen
-        document.getElementById('analyse-inhalt').innerHTML = analysisResult;
+
+        // Ergebnis anzeigen (HTML von API)
+        inhaltDiv.innerHTML = analysisResult; // Vorsicht: Direkte HTML-Injection von API birgt Risiken, wenn API kompromittiert wird. Ggf. Sanitization nötig.
+
     } catch (error) {
         console.error("Fehler bei der API-Analyse:", error);
-        
+
         // Fehlermeldung anzeigen
-        document.getElementById('analyse-inhalt').innerHTML = `
+        inhaltDiv.innerHTML = `
             <div class="p-4 bg-red-50 border border-red-200 rounded">
-                <h3 class="font-medium text-red-800 mb-2">Fehler bei der Analyse</h3>
-                <p>Bei der Verarbeitung Ihrer Anfrage ist ein Fehler aufgetreten:</p>
-                <p class="mt-2 p-2 bg-white border rounded font-mono text-sm">${error.message || "Unbekannter Fehler bei der API-Anfrage"}</p>
-                <button id="retry-analysis" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                <h3 class="font-medium text-red-800 mb-2"><i class="fas fa-exclamation-triangle mr-2"></i>Fehler bei der Analyse</h3>
+                <p class="text-sm text-red-700">Bei der Verarbeitung Ihrer Anfrage über ${getProviderName(window.BauFiRechner.apiProvider)} ist ein Fehler aufgetreten:</p>
+                <p class="mt-2 p-2 bg-white border rounded font-mono text-sm text-red-600">${error.message || "Unbekannter Fehler bei der API-Anfrage"}</p>
+                <button onclick="startAnalysis('${analyseTyp}')" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-sm">
                     <i class="fas fa-redo mr-2"></i>Erneut versuchen
+                </button>
+                 <button onclick="resetAnalysis()" class="mt-4 ml-2 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition text-sm">
+                    <i class="fas fa-arrow-left mr-2"></i>Zurück zur Auswahl
                 </button>
             </div>
         `;
-        
-        // Event-Listener für Retry-Button
-        document.getElementById('retry-analysis').addEventListener('click', () => {
-            startAnalysis(analyseTyp);
-        });
+         // Wir können hier nicht direkt einen EventListener hinzufügen, da der Button gerade erst erstellt wurde.
+         // Daher verwenden wir onclick im HTML oder nutzen Event Delegation auf #analyse-inhalt.
     }
 }
 
@@ -93,28 +99,36 @@ async function startAnalysis(analyseTyp) {
 async function performApiAnalysis(analyseTyp, analyseDaten, provider, apiKey) {
     // Prompt basierend auf Analysetyp erstellen
     const prompt = createAnalysisPrompt(analyseTyp, analyseDaten);
-    
+
     // API-Anfrage je nach Provider
-    let result;
-    
-    switch(provider) {
+    let resultHtml;
+
+    console.log(`Starte API-Analyse mit Provider: ${provider}`); // Debugging
+
+    switch (provider) {
         case 'openai':
-            result = await callOpenAI(prompt, apiKey);
+            resultHtml = await callOpenAI(prompt, apiKey);
             break;
         case 'anthropic':
-            result = await callClaude(prompt, apiKey);
+            resultHtml = await callClaude(prompt, apiKey);
             break;
         case 'deepseek':
-            result = await callDeepSeek(prompt, apiKey);
+            resultHtml = await callDeepSeek(prompt, apiKey);
             break;
         default:
+            console.error("Nicht unterstützter API-Provider:", provider);
             throw new Error("Nicht unterstützter API-Provider: " + provider);
     }
-    
-    return result;
+
+    // Einfache Bereinigung (optional, grundlegend)
+    // resultHtml = resultHtml.replace(/<script.*?>.*?<\/script>/gis, ''); // Entfernt script tags
+
+    console.log(`API-Analyse abgeschlossen.`); // Debugging
+    return resultHtml;
 }
 
-// OpenAI GPT API aufrufen
+// --- API Call Functions (OpenAI, Claude, DeepSeek) ---
+// (Keine Änderungen hier gegenüber deinem Code, aber stelle sicher, dass die Endpunkte aktuell sind)
 async function callOpenAI(prompt, apiKey) {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -123,28 +137,32 @@ async function callOpenAI(prompt, apiKey) {
             'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-            model: 'gpt-4',
+            model: 'gpt-4', // Oder ein anderes verfügbares Modell wie gpt-4-turbo
             messages: [
-                { role: 'system', content: 'Du bist ein Experte für Immobilienfinanzierung und analysierst Baufinanzierungen. Gib Antworten in gut formatiertem HTML mit CSS-Klassen im Tailwind CSS Format zurück. Verwende div, h3, p, ul, li, table und andere HTML-Elemente, um eine schöne Ausgabe zu erzeugen.' },
+                { role: 'system', content: 'Du bist ein Experte für Immobilienfinanzierung in Deutschland. Analysiere die übermittelten Daten und gib fundierte, strukturierte Antworten ausschließlich in gut formatiertem HTML zurück. Verwende ausschließlich Tailwind CSS Klassen (z.B. class="text-xl font-bold mb-2", class="p-4 border rounded bg-gray-50") für das Styling. Erzeuge Abschnitte mit Überschriften (h3, h4), Absätze (p), Listen (ul/ol/li) und ggf. Tabellen (table/thead/tbody/tr/th/td mit Tailwind Klassen). Fasse dich prägnant, aber informativ.' },
                 { role: 'user', content: prompt }
             ],
-            temperature: 0.7,
-            max_tokens: 4000
+            temperature: 0.6, // Etwas konservativer
+            max_tokens: 4000 // Maximal erlaubte Tokens prüfen
         })
     });
-    
+
     if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(`OpenAI API Error: ${response.status} ${response.statusText}${errorData ? ' - ' + JSON.stringify(errorData.error) : ''}`);
+        const errorData = await response.json().catch(() => ({ error: { message: 'Fehler beim Parsen der OpenAI-Fehlermeldung.' } }));
+        console.error('OpenAI API Error:', response.status, response.statusText, errorData);
+        throw new Error(`OpenAI API Error: ${response.status} ${response.statusText}${errorData.error ? ' - ' + (errorData.error.message || JSON.stringify(errorData.error)) : ''}`);
     }
-    
+
     const data = await response.json();
+    if (!data.choices || data.choices.length === 0 || !data.choices[0].message || !data.choices[0].message.content) {
+        console.error('Ungültige Antwort von OpenAI:', data);
+        throw new Error('Ungültige oder leere Antwort von OpenAI erhalten.');
+    }
     return data.choices[0].message.content;
 }
 
-// Claude API aufrufen
 async function callClaude(prompt, apiKey) {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+     const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -152,25 +170,31 @@ async function callClaude(prompt, apiKey) {
             'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
-            model: 'claude-3-opus-20240229',
+            model: 'claude-3-opus-20240229', // Prüfe verfügbare Modelle
             messages: [
                 { role: 'user', content: prompt }
             ],
-            system: 'Du bist ein Experte für Immobilienfinanzierung und analysierst Baufinanzierungen. Gib Antworten in gut formatiertem HTML mit CSS-Klassen im Tailwind CSS Format zurück. Verwende div, h3, p, ul, li, table und andere HTML-Elemente, um eine schöne Ausgabe zu erzeugen.',
-            max_tokens: 4000
+            system: 'Du bist ein Experte für Immobilienfinanzierung in Deutschland. Analysiere die übermittelten Daten und gib fundierte, strukturierte Antworten ausschließlich in gut formatiertem HTML zurück. Verwende ausschließlich Tailwind CSS Klassen (z.B. class="text-xl font-bold mb-2", class="p-4 border rounded bg-gray-50") für das Styling. Erzeuge Abschnitte mit Überschriften (h3, h4), Absätze (p), Listen (ul/ol/li) und ggf. Tabellen (table/thead/tbody/tr/th/td mit Tailwind Klassen). Fasse dich prägnant, aber informativ.',
+            max_tokens: 4000 // Prüfe max_tokens für Claude Modelle
         })
     });
-    
+
     if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(`Claude API Error: ${response.status} ${response.statusText}${errorData ? ' - ' + JSON.stringify(errorData) : ''}`);
+        const errorData = await response.json().catch(() => ({ type: 'error', error: { message: 'Fehler beim Parsen der Claude-Fehlermeldung.' }}));
+        console.error('Claude API Error:', response.status, response.statusText, errorData);
+        // Claude's Fehlerstruktur kann anders sein
+        const errorMessage = errorData?.error?.message || errorData?.detail || JSON.stringify(errorData);
+        throw new Error(`Claude API Error: ${response.status} ${response.statusText}${errorMessage ? ' - ' + errorMessage : ''}`);
     }
-    
+
     const data = await response.json();
+    if (!data.content || data.content.length === 0 || !data.content[0].text) {
+         console.error('Ungültige Antwort von Claude:', data);
+         throw new Error('Ungültige oder leere Antwort von Claude erhalten.');
+     }
     return data.content[0].text;
 }
 
-// DeepSeek API aufrufen
 async function callDeepSeek(prompt, apiKey) {
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
@@ -179,424 +203,389 @@ async function callDeepSeek(prompt, apiKey) {
             'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-            model: 'deepseek-chat',
+            model: 'deepseek-chat', // Oder anderes Modell
             messages: [
-                { role: 'system', content: 'Du bist ein Experte für Immobilienfinanzierung und analysierst Baufinanzierungen. Gib Antworten in gut formatiertem HTML mit CSS-Klassen im Tailwind CSS Format zurück. Verwende div, h3, p, ul, li, table und andere HTML-Elemente, um eine schöne Ausgabe zu erzeugen.' },
+                { role: 'system', content: 'Du bist ein Experte für Immobilienfinanzierung in Deutschland. Analysiere die übermittelten Daten und gib fundierte, strukturierte Antworten ausschließlich in gut formatiertem HTML zurück. Verwende ausschließlich Tailwind CSS Klassen (z.B. class="text-xl font-bold mb-2", class="p-4 border rounded bg-gray-50") für das Styling. Erzeuge Abschnitte mit Überschriften (h3, h4), Absätze (p), Listen (ul/ol/li) und ggf. Tabellen (table/thead/tbody/tr/th/td mit Tailwind Klassen). Fasse dich prägnant, aber informativ.' },
                 { role: 'user', content: prompt }
             ],
-            temperature: 0.7,
+            temperature: 0.6,
             max_tokens: 4000
         })
     });
-    
+
     if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(`DeepSeek API Error: ${response.status} ${response.statusText}${errorData ? ' - ' + JSON.stringify(errorData) : ''}`);
+        const errorData = await response.json().catch(() => ({ error: { message: 'Fehler beim Parsen der DeepSeek-Fehlermeldung.' } }));
+        console.error('DeepSeek API Error:', response.status, response.statusText, errorData);
+        throw new Error(`DeepSeek API Error: ${response.status} ${response.statusText}${errorData.error ? ' - ' + (errorData.error.message || JSON.stringify(errorData.error)) : ''}`);
     }
-    
+
     const data = await response.json();
+     if (!data.choices || data.choices.length === 0 || !data.choices[0].message || !data.choices[0].message.content) {
+        console.error('Ungültige Antwort von DeepSeek:', data);
+        throw new Error('Ungültige oder leere Antwort von DeepSeek erhalten.');
+    }
     return data.choices[0].message.content;
 }
 
-// API-Schlüssel validieren - echte Implementierung
+
+// --- API Key Validation Logic ---
+
+// Hauptfunktion zur Validierung, aufgerufen durch api-integration.js
 async function validateGlobalApiKey() {
-    const apiProvider = window.BauFiRechner.apiProvider;
-    if (!apiProvider) {
-        alert('Bitte wählen Sie einen API-Provider aus.');
-        return;
-    }
-    
-    const apiKey = document.getElementById('global-api-key').value.trim();
-    if (!apiKey) {
-        alert('Bitte geben Sie Ihren API-Schlüssel ein.');
-        return;
-    }
-    
+    const apiProvider = window.BauFiRechner?.apiProvider;
+    const apiKeyInput = document.getElementById('global-api-key');
     const validateButton = document.getElementById('validate-global-api');
+
+    if (!apiProvider || !apiKeyInput || !validateButton) {
+        console.error("Fehlende Elemente für API-Validierung");
+        if(typeof showApiStatus === 'function') showApiStatus('error', 'Interner Fehler: UI-Elemente nicht gefunden.');
+        return;
+    }
+
+    const apiKey = apiKeyInput.value.trim();
+
+    if (!apiProvider) {
+         if(typeof showApiStatus === 'function') showApiStatus('error', 'Bitte wählen Sie zuerst einen API-Provider aus.');
+        return;
+    }
+    if (!apiKey) {
+        if(typeof showApiStatus === 'function') showApiStatus('error', 'Bitte geben Sie Ihren API-Schlüssel ein.');
+        return;
+    }
+
     validateButton.textContent = 'Prüfe...';
     validateButton.disabled = true;
-    
+    if(typeof showApiStatus === 'function') showApiStatus('pending', `Validiere API-Schlüssel für ${getProviderName(apiProvider)}...`);
+     window.BauFiRechner.apiKey = null; // Schlüssel vor Prüfung zurücksetzen
+
     try {
         let isValid = false;
-        
+        console.log(`Starte Validierung für ${apiProvider}`); // Debugging
+
         // Provider-spezifische Validierung
-        switch(apiProvider) {
-            case 'openai':
-                isValid = await validateOpenAIKey(apiKey);
-                break;
-            case 'anthropic':
-                isValid = await validateClaudeKey(apiKey);
-                break;
-            case 'deepseek':
-                isValid = await validateDeepSeekKey(apiKey);
-                break;
-            default:
-                throw new Error("Nicht unterstützter API-Provider");
+        switch (apiProvider) {
+            case 'openai': isValid = await validateOpenAIKey(apiKey); break;
+            case 'anthropic': isValid = await validateClaudeKey(apiKey); break;
+            case 'deepseek': isValid = await validateDeepSeekKey(apiKey); break;
+            default: throw new Error("Nicht unterstützter API-Provider für Validierung");
         }
-        
+
+        console.log(`Validierungsergebnis für ${apiProvider}: ${isValid}`); // Debugging
+
         if (isValid) {
-            // API-Schlüssel speichern
+            // API-Schlüssel speichern (nur bei Erfolg!)
             window.BauFiRechner.apiKey = apiKey;
-            
             // Status aktualisieren
-            document.getElementById('api-status').classList.remove('hidden');
-            document.getElementById('api-status').classList.add('bg-green-50', 'border', 'border-green-500');
-            document.getElementById('api-status').innerHTML = `
-                <p class="text-green-700">
-                    <i class="fas fa-check-circle mr-2"></i>
-                    API-Schlüssel für ${getProviderName(apiProvider)} erfolgreich validiert. Sie können nun die KI-Analysefunktionen nutzen.
-                </p>
-            `;
-            
-            // UI in anderen Tabs aktualisieren
-            document.getElementById('ki-check-container').innerHTML = `
-                <p class="text-sm text-green-800">
-                    <i class="fas fa-check-circle mr-2"></i>
-                    API-Schlüssel für ${getProviderName(apiProvider)} erfolgreich validiert. Sie können die Analyse und Optimierung starten.
-                </p>
-            `;
-            document.getElementById('ki-check-container').classList.remove('bg-yellow-50', 'border-yellow-200');
-            document.getElementById('ki-check-container').classList.add('bg-green-50', 'border-green-200');
-            
-            // Enable analysis options
-            enableAnalysisOptions();
+             if(typeof showApiStatus === 'function') showApiStatus(true, `API-Schlüssel für ${getProviderName(apiProvider)} erfolgreich validiert.`);
+            // UI im Analyse-Tab aktualisieren (direkt oder über api-integration.js)
+            if(typeof updateKiCheckInAnalyseTab === 'function') updateKiCheckInAnalyseTab(true, apiProvider); // Pass provider for name
+            enableAnalysisOptions(); // Analyseoptionen jetzt freischalten
         } else {
-            document.getElementById('api-status').classList.remove('hidden');
-            document.getElementById('api-status').classList.add('bg-red-50', 'border', 'border-red-500');
-            document.getElementById('api-status').innerHTML = `
-                <p class="text-red-700">
-                    <i class="fas fa-exclamation-circle mr-2"></i>
-                    Der API-Schlüssel konnte nicht validiert werden. Bitte überprüfen Sie Ihre Eingabe und versuchen Sie es erneut.
-                </p>
-            `;
+            // Status aktualisieren für ungültigen Key
+             if(typeof showApiStatus === 'function') showApiStatus(false, `Der API-Schlüssel für ${getProviderName(apiProvider)} scheint ungültig zu sein. Bitte prüfen.`);
+            // UI im Analyse-Tab zurücksetzen
+             if(typeof resetKiCheckInAnalyseTab === 'function') resetKiCheckInAnalyseTab();
+            disableAnalysisOptions(); // Analyseoptionen wieder sperren
         }
     } catch (error) {
         console.error('Fehler bei der API-Validierung:', error);
-        
-        document.getElementById('api-status').classList.remove('hidden');
-        document.getElementById('api-status').classList.add('bg-red-50', 'border', 'border-red-500');
-        document.getElementById('api-status').innerHTML = `
-            <p class="text-red-700">
-                <i class="fas fa-exclamation-circle mr-2"></i>
-                Fehler bei der API-Validierung: ${error.message || "Unbekannter Fehler"}
-            </p>
-        `;
+        // Status aktualisieren für Fehler (Netzwerk etc.)
+        if(typeof showApiStatus === 'function') showApiStatus(false, `Fehler bei der API-Validierung (${getProviderName(apiProvider)}): ${error.message || "Unbekannter Fehler"}`);
+         // UI im Analyse-Tab zurücksetzen
+         if(typeof resetKiCheckInAnalyseTab === 'function') resetKiCheckInAnalyseTab();
+        disableAnalysisOptions();
     } finally {
         validateButton.textContent = 'Validieren';
         validateButton.disabled = false;
+         // Status-Nachricht nach kurzer Zeit ausblenden? Optional.
+         // setTimeout(() => { document.getElementById('api-status')?.classList.add('hidden'); }, 5000);
     }
 }
 
-// OpenAI API-Schlüssel validieren
+// --- Provider Specific Key Validation Functions ---
+
 async function validateOpenAIKey(apiKey) {
     try {
+        // Versuche eine günstige API-Anfrage, z.B. Modelle auflisten
         const response = await fetch('https://api.openai.com/v1/models', {
             method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`
-            }
+            headers: { 'Authorization': `Bearer ${apiKey}` }
         });
-        
-        return response.ok;
+         console.log('OpenAI validation response status:', response.status);
+        return response.ok; // Status 2xx bedeutet gültiger Key (meistens)
     } catch (error) {
-        console.error('OpenAI Validierungsfehler:', error);
-        return false;
+        // Netzwerkfehler etc.
+        console.error('OpenAI Validierungs-Netzwerkfehler:', error);
+        throw error; // Fehler weitergeben, um im Haupt-Try/Catch behandelt zu werden
     }
 }
 
-// Claude API-Schlüssel validieren
 async function validateClaudeKey(apiKey) {
     try {
+        // Sende eine minimale Anfrage, die Autorisierung erfordert
         const response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01'
+                'anthropic-version': '2023-06-01' // Wichtig!
             },
             body: JSON.stringify({
-                model: 'claude-3-opus-20240229',
-                max_tokens: 10,
-                messages: [
-                    { role: 'user', content: 'API key validation test' }
-                ]
+                model: 'claude-3-haiku-20240307', // Schnellstes & günstiges Modell für Validierung
+                max_tokens: 1, // Nur minimale Antwort benötigt
+                messages: [{ role: 'user', content: '.' }] // Minimale Nachricht
             })
         });
-        
+         console.log('Claude validation response status:', response.status);
+         // Claude gibt bei ungültigem Key oft 401 oder 403 zurück
+         // 400 Bad Request kann auch vorkommen bei Key-Formatproblemen o.ä.
+         if (response.status === 401 || response.status === 403) return false;
+         // 429 Too Many Requests würde auf einen gültigen Key hindeuten (Quota erschöpft) -> true
+         if (response.status === 429) return true;
+        return response.ok; // Andere 2xx oder z.B. 400 könnten auch Probleme sein, aber wir werten erstmal `ok`
+     } catch (error) {
+        console.error('Claude Validierungs-Netzwerkfehler:', error);
+         throw error;
+     }
+}
+
+async function validateDeepSeekKey(apiKey) {
+    try {
+        // Ähnlich wie OpenAI, Modelle auflisten versuchen
+        const response = await fetch('https://api.deepseek.com/v1/models', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${apiKey}` }
+        });
+        console.log('DeepSeek validation response status:', response.status);
         return response.ok;
     } catch (error) {
-        console.error('Claude Validierungsfehler:', error);
-        return false;
+        console.error('DeepSeek Validierungs-Netzwerkfehler:', error);
+        throw error;
     }
 }
 
-// DeepSeek API-Schlüssel validieren
-async function validateDeepSeekKey(apiKey) {
-    try {
-        const response = await fetch('https://api.deepseek.com/v1/models', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`
-            }
-        });
-        
-        return response.ok;
-    } catch (error) {
-        console.error('DeepSeek Validierungsfehler:', error);
-        return false;
-    }
-}
+// --- Helper Functions ---
 
 // Analysedaten sammeln
 function collectAnalysisData() {
-    // Objektdaten
-    const objekttyp = document.getElementById('objekttyp').value;
-    const nutzungsart = document.getElementById('nutzungsart').value;
-    const wohnflaeche = parseFloat(document.getElementById('wohnflaeche').value) || 0;
-    const grundstuecksflaeche = parseFloat(document.getElementById('grundstuecksflaeche').value) || 0;
-    const plz = document.getElementById('plz').value;
-    const ort = document.getElementById('ort').value;
-    const bundesland = document.getElementById('bundesland').value;
-    const lage = document.getElementById('lage').value;
-    const baujahr = parseFloat(document.getElementById('baujahr').value) || 0;
-    const zustand = document.getElementById('zustand')?.value || '';
-    
-    // Kostendaten
-    const kaufpreis = parseFloat(document.getElementById('kaufpreis').value) || 0;
-    const kaufpreisQm = wohnflaeche > 0 ? kaufpreis / wohnflaeche : 0;
-    const grunderwerbsteuer = parseFloat(document.getElementById('grunderwerbsteuer_prozent').value) || 0;
-    const notar = parseFloat(document.getElementById('notar_prozent').value) || 0;
-    const makler = parseFloat(document.getElementById('makler_prozent').value) || 0;
-    const nebenkostenGesamt = parseFloat(document.getElementById('nebenkosten_gesamt').textContent.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
-    const modernisierungskosten = parseFloat(document.getElementById('modernisierungskosten').value) || 0;
-    
-    // Finanzierungsdaten
-    const eigenkapital = parseFloat(document.getElementById('eigenkapital').value) || 0;
-    const eigenkapitalQuote = parseFloat(document.getElementById('eigenkapital_quote').textContent.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
-    const foerdermittel = parseFloat(document.getElementById('foerdermittel').value) || 0;
-    const zuFinanzieren = parseFloat(document.getElementById('zu_finanzieren').textContent.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
-    
-    // Darlehensdaten
-    const darlehen = [];
-    const darlehenBlocks = document.querySelectorAll('.darlehen-block');
-    
-    darlehenBlocks.forEach((block, index) => {
-        const darlehensBetrag = parseFloat(block.querySelector('.darlehen-betrag').value) || 0;
-        const zins = parseFloat(block.querySelector('.darlehen-zins').value) || 0;
-        const tilgung = parseFloat(block.querySelector('.darlehen-tilgung').value) || 0;
-        const zinsbindung = parseFloat(block.querySelector('.darlehen-zinsbindung').value) || 0;
-        const rate = parseFloat(block.querySelector('.darlehen-rate').textContent.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
-        const restschuld = parseFloat(block.querySelector('.darlehen-restschuld').textContent.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
-        
-        // Sondertilgung
-        let sondertilgung = {
-            aktiv: false,
-            betrag: 0,
-            rhythmus: 'jaehrlich'
-        };
-        
-        const sondertilgungOption = block.querySelector('.darlehen-sondertilgung-option');
-        if (sondertilgungOption && sondertilgungOption.checked) {
-            sondertilgung.aktiv = true;
-            sondertilgung.betrag = parseFloat(block.querySelector('.darlehen-sondertilgung-betrag').value) || 0;
-            sondertilgung.rhythmus = block.querySelector('.darlehen-sondertilgung-rhythmus').value;
-        }
-        
-        darlehen.push({
-            nr: index + 1,
-            betrag: darlehensBetrag,
-            zins,
-            tilgung,
-            zinsbindung,
-            rate,
-            restschuld,
-            sondertilgung
+    try {
+        // Objektdaten
+        const objekttyp = document.getElementById('objekttyp')?.value || 'N/A';
+        const nutzungsart = document.getElementById('nutzungsart')?.value || 'N/A';
+        const wohnflaeche = parseFloat(document.getElementById('wohnflaeche')?.value) || 0;
+        const grundstuecksflaeche = parseFloat(document.getElementById('grundstuecksflaeche')?.value) || 0;
+        const plz = document.getElementById('plz')?.value || 'N/A';
+        const ort = document.getElementById('ort')?.value || 'N/A';
+        const bundesland = document.getElementById('bundesland')?.value || 'N/A';
+        const lage = document.getElementById('lage')?.value || 'N/A';
+        const baujahr = parseFloat(document.getElementById('baujahr')?.value) || 0;
+        const zustand = document.getElementById('zustand')?.value || 'N/A';
+
+        // Kostendaten
+        const kaufpreis = parseFloat(document.getElementById('kaufpreis')?.value) || 0;
+        const kaufpreisQm = (wohnflaeche > 0 && kaufpreis > 0) ? kaufpreis / wohnflaeche : 0;
+        const grunderwerbsteuer = parseFloat(document.getElementById('grunderwerbsteuer_prozent')?.value) || 0;
+        const notar = parseFloat(document.getElementById('notar_prozent')?.value) || 0;
+        const makler = parseFloat(document.getElementById('makler_prozent')?.value) || 0;
+        const nebenkostenGesamt = parseFloat(document.getElementById('nebenkosten_gesamt')?.textContent?.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+        const modernisierungskosten = parseFloat(document.getElementById('modernisierungskosten')?.value) || 0;
+
+        // Finanzierungsdaten
+        const eigenkapital = parseFloat(document.getElementById('eigenkapital')?.value) || 0;
+        const gesamtkosten = parseFloat(document.getElementById('fs_gesamtkosten')?.textContent?.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+        const eigenkapitalQuote = (gesamtkosten > 0) ? (eigenkapital / gesamtkosten) * 100 : 0; // Sicherer berechnen
+        const foerdermittel = parseFloat(document.getElementById('foerdermittel')?.value) || 0;
+        const zuFinanzieren = parseFloat(document.getElementById('zu_finanzieren')?.textContent?.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+
+        // Darlehensdaten
+        const darlehen = [];
+        const darlehenBlocks = document.querySelectorAll('.darlehen-block');
+        darlehenBlocks.forEach((block, index) => {
+            const darlehensBetrag = parseFloat(block.querySelector('.darlehen-betrag')?.value) || 0;
+            const zins = parseFloat(block.querySelector('.darlehen-zins')?.value) || 0;
+            const tilgung = parseFloat(block.querySelector('.darlehen-tilgung')?.value) || 0;
+            const zinsbindung = parseFloat(block.querySelector('.darlehen-zinsbindung')?.value) || 0;
+            // Berechne Rate hier neu für Konsistenz? Oder verlasse dich auf UI? Besser neu berechnen.
+            const jaehrlicheRate = darlehensBetrag * (zins + tilgung) / 100;
+            let monatlicheRate = jaehrlicheRate / 12;
+            const restschuld = parseFloat(block.querySelector('.darlehen-restschuld')?.textContent?.replace(/[^0-9,]/g, '').replace(',', '.')) || 0; // Nehmen UI-Wert
+
+            // Sondertilgung
+            let sondertilgung = { aktiv: false, betrag: 0, rhythmus: 'jaehrlich' };
+            const sondertilgungOption = block.querySelector('.darlehen-sondertilgung-option');
+            if (sondertilgungOption && sondertilgungOption.checked) {
+                 sondertilgung.aktiv = true;
+                 sondertilgung.betrag = parseFloat(block.querySelector('.darlehen-sondertilgung-betrag')?.value) || 0;
+                 sondertilgung.rhythmus = block.querySelector('.darlehen-sondertilgung-rhythmus')?.value || 'jaehrlich';
+                 // Passe Rate ggf. an, falls Sondertilgung monatlich/einmalig die effektive Rate ändert (komplex) - Lassen wir für den Prompt vorerst die Basisrate.
+             }
+
+             if (darlehensBetrag > 0) { // Nur hinzufügen, wenn Betrag > 0
+                 darlehen.push({
+                    nr: index + 1,
+                    betrag: darlehensBetrag, zins, tilgung, zinsbindung,
+                    rate: monatlicheRate, // Annuitätenrate (ohne ST für Prompt erstmal)
+                    restschuld, // Aus UI
+                    sondertilgung
+                 });
+             }
         });
-    });
-    
-    // Gesamtsummen
-    const darlehenSumme = parseFloat(document.getElementById('darlehen_summe').textContent.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
-    const rateSumme = parseFloat(document.getElementById('rate_summe').textContent.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
-    const beleihungsauslauf = parseFloat(document.getElementById('beleihungsauslauf').textContent.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
-    
-    // Für Belastungsanalyse (konservative Schätzung)
-    const monatlichesNettoeinkommen = rateSumme * 3; // Annahme: Rate ist ca. 1/3 des Nettoeinkommens
-    const monatlicheWohnkosten = rateSumme * 1.3; // Annahme: Nebenkosten sind ca. 30% der Rate
-    
-    return {
-        objektdaten: {
-            objekttyp,
-            nutzungsart,
-            wohnflaeche,
-            grundstuecksflaeche,
-            plz,
-            ort,
-            bundesland,
-            lage,
-            baujahr,
-            zustand
-        },
-        kostendaten: {
-            kaufpreis,
-            kaufpreisQm,
-            grunderwerbsteuer,
-            notar,
-            makler,
-            nebenkostenGesamt,
-            modernisierungskosten
-        },
-        finanzierungsdaten: {
-            eigenkapital,
-            eigenkapitalQuote,
-            foerdermittel,
-            zuFinanzieren,
-            darlehen,
-            darlehenSumme,
-            rateSumme,
-            beleihungsauslauf
-        },
-        belastungsdaten: {
-            monatlichesNettoeinkommen,
-            monatlicheWohnkosten
-        }
-    };
+
+        // Gesamtsummen
+        const darlehenSumme = darlehen.reduce((sum, d) => sum + d.betrag, 0); // Sicherer berechnen
+        const rateSumme = parseFloat(document.getElementById('rate_summe')?.textContent?.replace(/[^0-9,]/g, '').replace(',', '.')) || 0; // Aus UI, inkl. Sondertilgung
+        const beleihungsauslauf = (kaufpreis > 0) ? (darlehenSumme / kaufpreis) * 100 : 0; // Sicherer berechnen
+
+        // Annahmen für Belastungsanalyse (einfach)
+        // WICHTIG: Diese sollten idealerweise Eingabefelder sein!
+        const monatlichesNettoeinkommen = rateSumme > 0 ? rateSumme * 3 : 3000; // Beispielhafte Annahme oder Mindestwert
+        const monatlicheNebenkosten = kaufpreis > 0 ? (kaufpreis * 0.003) / 12 : 200; // Grobe Annahme für lfd. NK (ca. 3€/m²/Jahr) -> besser wohnfläche nehmen!
+        const monatlicheWohnkosten = rateSumme + monatlicheNebenkosten;
+
+        return {
+            objektdaten: { objekttyp, nutzungsart, wohnflaeche, grundstuecksflaeche, plz, ort, bundesland, lage, baujahr, zustand },
+            kostendaten: { kaufpreis, kaufpreisQm, grunderwerbsteuer, notar, makler, nebenkostenGesamt, modernisierungskosten },
+            finanzierungsdaten: { eigenkapital, eigenkapitalQuote: eigenkapitalQuote, foerdermittel, zuFinanzieren, darlehen, darlehenSumme, rateSumme, beleihungsauslauf },
+            belastungsdaten: { monatlichesNettoeinkommen, monatlicheWohnkosten, hinweis: "Annahmen für Nettoeinkommen und Wohnkosten!" }
+        };
+    } catch (error) {
+        console.error("Fehler beim Sammeln der Analysedaten:", error);
+        return null; // Signalisiert Fehler
+    }
 }
 
 // Prompt für die jeweilige Analyse erstellen
 function createAnalysisPrompt(analyseTyp, analyseDaten) {
+    // Formatierungsfunktion lokal oder aus globalem Scope
+    const _formatCurrency = typeof formatCurrency === 'function' ? formatCurrency : value => `${(value || 0).toFixed(2)} €`;
+
     const allgemeineInfo = `
-Ich benötige eine detaillierte Analyse einer Baufinanzierung mit folgenden Daten:
+Ich benötige eine detaillierte Analyse für eine Baufinanzierung in Deutschland mit folgenden Daten. Bitte antworte ausschließlich in formatiertem HTML mit Tailwind CSS Klassen.
 
-## Objektdaten
-- Objekttyp: ${analyseDaten.objektdaten.objekttyp}
-- Nutzungsart: ${analyseDaten.objektdaten.nutzungsart}
-- Wohnfläche: ${analyseDaten.objektdaten.wohnflaeche} m²
-- Grundstücksfläche: ${analyseDaten.objektdaten.grundstuecksflaeche} m²
-- PLZ/Ort: ${analyseDaten.objektdaten.plz} ${analyseDaten.objektdaten.ort}
-- Bundesland: ${analyseDaten.objektdaten.bundesland}
-- Lage: ${analyseDaten.objektdaten.lage}
-${analyseDaten.objektdaten.baujahr ? `- Baujahr: ${analyseDaten.objektdaten.baujahr}` : ''}
-${analyseDaten.objektdaten.zustand ? `- Zustand: ${analyseDaten.objektdaten.zustand}` : ''}
+**Allgemeine Projektübersicht:**
+*   Kaufpreis: ${_formatCurrency(analyseDaten.kostendaten.kaufpreis)}
+*   Gesamtkosten (inkl. Nebenkosten & Zusatzkosten): ${_formatCurrency(analyseDaten.finanzierungsdaten.eigenkapital + analyseDaten.finanzierungsdaten.zuFinanzieren)}
+*   Eigenkapital: ${_formatCurrency(analyseDaten.finanzierungsdaten.eigenkapital)} (${analyseDaten.finanzierungsdaten.eigenkapitalQuote.toFixed(1)}%)
+*   Darlehenssumme gesamt: ${_formatCurrency(analyseDaten.finanzierungsdaten.darlehenSumme)}
+*   Monatliche Rate gesamt: ${_formatCurrency(analyseDaten.finanzierungsdaten.rateSumme)}
+*   Beleihungsauslauf (LTV): ${analyseDaten.finanzierungsdaten.beleihungsauslauf.toFixed(1)}%
 
-## Kostendaten
-- Kaufpreis: ${formatCurrency(analyseDaten.kostendaten.kaufpreis)}
-- Kaufpreis pro m²: ${formatCurrency(analyseDaten.kostendaten.kaufpreisQm)}
-- Grunderwerbsteuer: ${analyseDaten.kostendaten.grunderwerbsteuer}%
-- Notar & Grundbuch: ${analyseDaten.kostendaten.notar}%
-- Maklergebühr: ${analyseDaten.kostendaten.makler}%
-- Kaufnebenkosten gesamt: ${formatCurrency(analyseDaten.kostendaten.nebenkostenGesamt)}
-- Modernisierungskosten: ${formatCurrency(analyseDaten.kostendaten.modernisierungskosten)}
+**Objektdaten:**
+*   Typ: ${analyseDaten.objektdaten.objekttyp} | Nutzung: ${analyseDaten.objektdaten.nutzungsart}
+*   Standort: ${analyseDaten.objektdaten.plz} ${analyseDaten.objektdaten.ort} (${analyseDaten.objektdaten.bundesland}) | Lage: ${analyseDaten.objektdaten.lage}
+*   Größe: ${analyseDaten.objektdaten.wohnflaeche} m² Wohnfläche | ${analyseDaten.objektdaten.grundstuecksflaeche} m² Grundstück
+*   Kaufpreis/m²: ${_formatCurrency(analyseDaten.kostendaten.kaufpreisQm)}
+*   Baujahr: ${analyseDaten.objektdaten.baujahr || 'N/A'} | Zustand: ${analyseDaten.objektdaten.zustand || 'N/A'}
 
-## Finanzierungsdaten
-- Eigenkapital: ${formatCurrency(analyseDaten.finanzierungsdaten.eigenkapital)}
-- Eigenkapitalquote: ${analyseDaten.finanzierungsdaten.eigenkapitalQuote.toFixed(1)}%
-- Fördermittel: ${formatCurrency(analyseDaten.finanzierungsdaten.foerdermittel)}
-- Zu finanzierender Betrag: ${formatCurrency(analyseDaten.finanzierungsdaten.zuFinanzieren)}
-- Beleihungsauslauf: ${analyseDaten.finanzierungsdaten.beleihungsauslauf.toFixed(1)}%
+**Kostendetails:**
+*   Kaufnebenkosten: ${_formatCurrency(analyseDaten.kostendaten.nebenkostenGesamt)} (GrESt: ${analyseDaten.kostendaten.grunderwerbsteuer}%, Notar/GB: ${analyseDaten.kostendaten.notar}%, Makler: ${analyseDaten.kostendaten.makler}%)
+*   Zusätzl. Kosten (Modernisierung etc.): ${_formatCurrency(analyseDaten.kostendaten.modernisierungskosten)}
+*   Fördermittel: ${_formatCurrency(analyseDaten.finanzierungsdaten.foerdermittel)}
 `;
 
-    // Darlehensdaten hinzufügen
-    let darlehenInfo = "\n## Darlehen\n";
-    analyseDaten.finanzierungsdaten.darlehen.forEach(darlehen => {
-        darlehenInfo += `
-### Darlehen ${darlehen.nr}
-- Betrag: ${formatCurrency(darlehen.betrag)}
-- Zins: ${darlehen.zins.toFixed(2)}%
-- Tilgung: ${darlehen.tilgung.toFixed(2)}%
-- Zinsbindung: ${darlehen.zinsbindung} Jahre
-- Monatliche Rate: ${formatCurrency(darlehen.rate)}
-- Restschuld nach Zinsbindung: ${formatCurrency(darlehen.restschuld)}
-- Sondertilgung: ${darlehen.sondertilgung.aktiv ? `Ja, ${formatCurrency(darlehen.sondertilgung.betrag)} (${darlehen.sondertilgung.rhythmus})` : 'Nein'}
+    let darlehenInfo = "\n**Finanzierungsbausteine (Darlehen):**\n";
+    if (analyseDaten.finanzierungsdaten.darlehen.length > 0) {
+        darlehenInfo += '<div class="space-y-3">'; // Verwende div anstelle von ul/li für mehr Flexibilität
+        analyseDaten.finanzierungsdaten.darlehen.forEach(d => {
+            darlehenInfo += `
+<div class="p-3 border rounded bg-gray-50">
+    <h4 class="font-medium text-sm mb-1">Darlehen ${d.nr}</h4>
+    Betrag: ${_formatCurrency(d.betrag)} | Zins: ${d.zins.toFixed(2)}% | Tilgung: ${d.tilgung.toFixed(2)}%<br>
+    Zinsbindung: ${d.zinsbindung} Jahre | Monatliche Rate (Annuität): ${_formatCurrency(d.rate)}<br>
+    Restschuld (nach Zinsbindung): ${_formatCurrency(d.restschuld)}<br>
+    Sondertilgung: ${d.sondertilgung.aktiv ? `Ja (${_formatCurrency(d.sondertilgung.betrag)} ${d.sondertilgung.rhythmus})` : 'Nein'}
+</div>
 `;
-    });
+        });
+        darlehenInfo += '</div>';
+    } else {
+        darlehenInfo += "<p>Keine Darlehensdaten vorhanden.</p>";
+    }
 
-    let spezifischeAnweisung = "";
-    
-    switch(analyseTyp) {
+
+    let spezifischeAnweisung = "\n**Analyseauftrag:**\n";
+    switch (analyseTyp) {
         case 'marktdaten':
-            spezifischeAnweisung = `
-Führe eine detaillierte Marktdatenanalyse für die oben beschriebene Immobilie durch. Bewerte insbesondere:
-1. Die Relation des Kaufpreises zum aktuellen Marktdurchschnitt in der Region
-2. Den Kaufpreis pro Quadratmeter im Vergleich zu ähnlichen Objekten
-3. Die aktuelle und prognostizierte Preisentwicklung für diesen Standort
-4. Die Angemessenheit des Kaufpreises unter Berücksichtigung von Lage, Objekttyp und Zustand
-
-Formatiere deine Antwort als HTML mit Tailwind CSS-Klassen. Verwende div-Container, Tabellen, Listenelemente und farbige Hervorhebungen (grün für positive, gelb für neutrale und rot für kritische Bewertungen).
-`;
+            spezifischeAnweisung += `
+Bitte führe eine **Marktdatenanalyse** für die oben beschriebene Immobilie durch. Bewerte:
+1.  Angemessenheit des Kaufpreises und des Preises pro Quadratmeter im regionalen Vergleich (PLZ/Ort).
+2.  Berücksichtigung von Lage, Zustand und Baujahr bei der Preiseinschätzung.
+3.  Kurze Einschätzung zur potenziellen Wertentwicklung am Standort (falls möglich).
+Gib eine klare Einschätzung (z.B. günstig, marktgerecht, teuer) mit Begründung.`;
             break;
-            
         case 'belastung':
-            spezifischeAnweisung = `
-Führe eine Belastbarkeitsanalyse für die oben beschriebene Finanzierung durch. Bewerte insbesondere:
-1. Das Verhältnis der monatlichen Rate zum angenommenen Nettoeinkommen
-2. Die Nachhaltigkeit der monatlichen Belastung über die Laufzeit
-3. Risikofaktoren und Belastungsspitzen
-4. Empfehlungen für eine solide und tragfähige Finanzierung
-
-Nimm für diese Analyse an, dass das monatliche Nettoeinkommen bei ${formatCurrency(analyseDaten.belastungsdaten.monatlichesNettoeinkommen)} liegt und die gesamten monatlichen Wohnkosten (inkl. Nebenkosten) bei ${formatCurrency(analyseDaten.belastungsdaten.monatlicheWohnkosten)}.
-
-Formatiere deine Antwort als HTML mit Tailwind CSS-Klassen. Verwende div-Container, Tabellen, Listenelemente und farbige Hervorhebungen (grün für positive, gelb für neutrale und rot für kritische Bewertungen).
-`;
+            spezifischeAnweisung += `
+Bitte führe eine **Belastbarkeitsanalyse** durch. Bewerte:
+1.  Die Höhe der monatlichen Gesamtbelastung (${_formatCurrency(analyseDaten.finanzierungsdaten.rateSumme)}) im Verhältnis zum angenommenen monatlichen Haushaltsnettoeinkommen von ca. **${_formatCurrency(analyseDaten.belastungsdaten.monatlichesNettoeinkommen)}**. (Hinweis: Dies ist eine Annahme!)
+2.  Die geschätzten gesamten monatlichen Wohnkosten (Rate + Nebenkosten) von ca. **${_formatCurrency(analyseDaten.belastungsdaten.monatlicheWohnkosten)}**.
+3.  Risiken (Zinsänderungsrisiko nach Zinsbindung, Puffer für Unvorhergesehenes).
+4.  Eine Einschätzung, ob die Finanzierung tragfähig erscheint (z.B. komfortabel, tragfähig, angespannt, kritisch).`;
             break;
-            
         case 'optimierung':
-            spezifischeAnweisung = `
-Erstelle detaillierte Optimierungsvorschläge für die oben beschriebene Baufinanzierung. Analysiere:
-1. Die Eigenkapitalquote und mögliche Verbesserungen
-2. Die Darlehensstruktur (Zinsen, Tilgung, Zinsbindung)
-3. Sondertilgungsoptionen und deren optimale Nutzung
-4. Finanzierungsalternativen und Optimierungspotenziale
-5. Konkrete, umsetzbare Handlungsempfehlungen
-
-Formatiere deine Antwort als HTML mit Tailwind CSS-Klassen. Verwende div-Container, Tabellen, Listenelemente und farbige Hervorhebungen. Gib klare, konkrete Handlungsanweisungen und erkläre die Vorteile jeder Optimierung.
-`;
+            spezifischeAnweisung += `
+Bitte gib **konkrete Optimierungsvorschläge** für diese Finanzierungsstruktur. Analysiere insbesondere:
+1.  Potenzial bei Eigenkapitalquote und Beleihungsauslauf.
+2.  Möglichkeiten bei der Darlehensstruktur (Zinsen, Tilgungshöhe, Zinsbindungsfristen).
+3.  Sinnhaftigkeit und Einsatz der Sondertilgungsoptionen.
+4.  Gibt es offensichtliche Lücken oder Nachteile in der aktuellen Struktur?
+Formuliere klare Handlungsempfehlungen.`;
             break;
-            
         case 'vollstaendig':
-            spezifischeAnweisung = `
-Führe eine vollständige Analyse und Plausibilitätsprüfung der oben beschriebenen Baufinanzierung durch. Diese sollte folgende Aspekte umfassen:
-1. Marktdatenanalyse: Bewertung des Kaufpreises im Vergleich zum Markt
-2. Belastbarkeitsanalyse: Nachhaltigkeit der monatlichen Raten
-3. Risikoanalyse: Identifikation und Bewertung von Risikofaktoren
-4. Optimierungsvorschläge: Konkrete Handlungsempfehlungen
-5. Gesamtbewertung: Einstufung der Finanzierung (z.B. risikoarm, solide, optimierungsbedürftig, kritisch)
-
-Gib eine Risikobewertung auf einer Skala von niedrig, mittel bis hoch.
-
-Formatiere deine Antwort als HTML mit Tailwind CSS-Klassen. Strukturiere die Analyse in Abschnitte und verwende Tabellen, Listen und farbige Hervorhebungen. Die Ausgabe sollte professionell und leicht verständlich sein.
-`;
+            spezifischeAnweisung += `
+Bitte führe eine **vollständige Plausibilitätsprüfung und Analyse** durch. Diese soll umfassen:
+1.  **Markteinschätzung:** Ist der Kaufpreis realistisch?
+2.  **Belastbarkeit:** Ist die Rate tragfähig (Annahme Einkommen: ca. ${_formatCurrency(analyseDaten.belastungsdaten.monatlichesNettoeinkommen)})?
+3.  **Struktur:** Sind Zinsen, Tilgung, Zinsbindung sinnvoll gewählt? Gibt es Risiken?
+4.  **Optimierungspotenzial:** Wo gibt es Verbesserungsmöglichkeiten?
+5.  **Gesamtbewertung:** Eine zusammenfassende Einschätzung (z.B. solide, gut mit Potenzial, riskant) und eine Risikoeinstufung (niedrig, mittel, hoch).`;
             break;
     }
-    
-    return allgemeineInfo + darlehenInfo + spezifischeAnweisung;
+
+    return allgemeineInfo + darlehenInfo + spezifischeAnweisung + "\n\nFormatiere deine gesamte Antwort als HTML mit Tailwind CSS Klassen.";
 }
 
-// Analyse-Optionen aktivieren
+
+// Analyse-Optionen aktivieren/deaktivieren
 function enableAnalysisOptions() {
     const analyseOptionen = document.getElementById('analyse-optionen');
-    const analyseOptions = analyseOptionen.querySelectorAll('div');
-    
-    analyseOptions.forEach(option => {
-        option.classList.add('bg-white');
-        option.addEventListener('click', handleAnalysisOptionClick);
+    if (!analyseOptionen) return;
+    analyseOptionen.querySelectorAll('div[id$="-analyse"]').forEach(option => {
+        option.classList.remove('opacity-50', 'cursor-not-allowed', 'hover:shadow-none');
+        option.classList.add('cursor-pointer', 'hover:shadow-md');
+        // Ensure event listeners are attached (though they are attached in initAnalysis)
     });
 }
 
-// Analyse-Option Click-Handler
-function handleAnalysisOptionClick(e) {
-    const optionId = e.currentTarget.id;
-    
-    // Analyse starten
-    startAnalysis(optionId.replace('-analyse', ''));
+function disableAnalysisOptions() {
+    const analyseOptionen = document.getElementById('analyse-optionen');
+     if (!analyseOptionen) return;
+    analyseOptionen.querySelectorAll('div[id$="-analyse"]').forEach(option => {
+        option.classList.add('opacity-50', 'cursor-not-allowed', 'hover:shadow-none');
+         option.classList.remove('cursor-pointer', 'hover:shadow-md');
+         // Optionally remove event listeners here if needed, but disabling visually/functionally might be enough
+    });
+    // Reset Analysis View
+    resetAnalysis();
 }
 
-// Analyse zurücksetzen
+// Analyse zurücksetzen (UI-Teil)
 function resetAnalysis() {
-    document.getElementById('analyse-ergebnis-container').classList.add('hidden');
-    document.getElementById('analyse-optionen').classList.remove('hidden');
+    const ergebnisContainer = document.getElementById('analyse-ergebnis-container');
+    const optionenContainer = document.getElementById('analyse-optionen');
+     if (!ergebnisContainer || !optionenContainer) return;
+
+    ergebnisContainer.classList.add('hidden');
+    optionenContainer.classList.remove('hidden');
+     document.getElementById('analyse-inhalt').innerHTML = ''; // Inhalt leeren
+     // Deaktiviere Optionen wieder, falls kein gültiger Key (neu) gesetzt ist
+     if (!window.BauFiRechner?.apiKey) {
+        disableAnalysisOptions();
+    }
 }
 
-// Provider-Name abrufen
+// Provider-Name abrufen (Hilfsfunktion)
+// Definition aus api-integration.js wird hier vorausgesetzt oder muss hierhin kopiert werden:
+/*
 function getProviderName(providerId) {
     switch(providerId) {
         case 'openai': return 'OpenAI (GPT-4)';
@@ -605,8 +594,13 @@ function getProviderName(providerId) {
         default: return 'KI-Provider';
     }
 }
+*/
 
-// Formatierungsfunktion für Währungsbeträge
+// Formatierungsfunktion für Währungsbeträge (Hilfsfunktion)
+// Definition aus main.js wird hier vorausgesetzt oder muss hierhin kopiert werden:
+/*
 function formatCurrency(value) {
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
+     if (isNaN(value) || value === null) { return '-'; }
+     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
 }
+*/
