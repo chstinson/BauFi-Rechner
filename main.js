@@ -9,25 +9,20 @@ document.addEventListener('DOMContentLoaded', function() {
         apiKey: null,
         apiProvider: null,
         datenValidiert: false,
-        currentTab: 'overview'
+        currentTab: 'overview',
+        dataCollectionError: null // NEU: Für spezifische Fehlermeldungen
     };
 
     // Tab-Navigation initialisieren
     initTabNavigation();
 
-    // --- ENTFERNT --- : Redundante API-Integration Initialisierung hier entfernt.
-    // Die Initialisierung erfolgt korrekt über DOMContentLoaded in api-integration.js
-
     // Event-Listener für Navigation zwischen Tabs
     setupNavigationEvents();
 
     // Initialisierung der Module, wenn vorhanden
-    // Diese sollten idealerweise auch über DOMContentLoaded in ihren jeweiligen Dateien erfolgen,
-    // aber wir lassen sie hier vorerst, falls es Abhängigkeiten gibt.
     if (typeof initObjectData === 'function') initObjectData();
     if (typeof initCostsData === 'function') initCostsData();
     if (typeof initFinancingData === 'function') initFinancingData();
-    // Die Analyse-Initialisierung sollte idealerweise auch in analysis.js erfolgen
     if (typeof initAnalysis === 'function') initAnalysis();
 
 
@@ -37,28 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialen Status aktualisieren
     if (typeof updateOverview === 'function') updateOverview();
 
-    // --- ENTFERNT --- : Redundanter API-Toggle Event-Listener hier entfernt.
-    // Der Listener wird korrekt in api-integration.js hinzugefügt.
-
-    // Beim Laden der Seite prüfen, ob ein API-Bereich initial den richtigen Status hat
-    // (Dies wird jetzt auch von api-integration.js übernommen)
-    const apiContent = document.getElementById('api-content');
-    const apiToggleIcon = document.getElementById('api-toggle-icon');
-
-    // Standardmäßig ausgeklappt (wird in api-integration.js gesetzt)
-    if (apiContent && apiContent.style.display !== 'none' && apiToggleIcon) {
-        // Sicherstellen, dass das Icon korrekt ist, falls es nicht durch api-integration.js gesetzt wurde
-         if (!apiToggleIcon.classList.contains('fa-chevron-down')) {
-             apiToggleIcon.classList.remove('fa-chevron-up');
-             apiToggleIcon.classList.add('fa-chevron-down');
-         }
-    } else if (apiContent && apiContent.style.display === 'none' && apiToggleIcon) {
-        // Sicherstellen, dass das Icon korrekt ist, falls es eingeklappt ist
-        if (!apiToggleIcon.classList.contains('fa-chevron-up')) {
-             apiToggleIcon.classList.remove('fa-chevron-down');
-             apiToggleIcon.classList.add('fa-chevron-up');
-         }
-    }
+    // API-Bereich initialisieren (aus api-integration.js)
 });
 
 // Tab-Navigation - Direkte Implementation ohne externe Abhängigkeiten
@@ -170,34 +144,14 @@ function setupNavigationEvents() {
     }
 
     // API-Schlüssel-Button in der Analyse
-    const gotoApiKeyBtn = document.getElementById('goto-api-key');
-    if (gotoApiKeyBtn) {
-        gotoApiKeyBtn.addEventListener('click', function() {
-            // Scrolle zum API-Container
-            const apiContainer = document.getElementById('api-global-container');
-            if (apiContainer) {
-                 apiContainer.scrollIntoView({
-                     behavior: 'smooth',
-                     block: 'start' // Scrollt zum oberen Rand des Elements
-                 });
-                 // Optional: API-Bereich aufklappen, falls er zu ist
-                 const apiContent = document.getElementById('api-content');
-                 if (apiContent && apiContent.style.display === 'none') {
-                     if(typeof toggleApiSection === 'function') {
-                        toggleApiSection();
-                     }
-                 }
-            }
-        });
-    }
+    // Wird jetzt dynamisch in resetKiCheckInAnalyseTab (api-integration.js) erstellt und hat onclick
+    // const gotoApiKeyBtn = document.getElementById('goto-api-key'); // Nicht mehr statisch
 
     // Rechner zurücksetzen
     const resetCalculatorBtn = document.getElementById('reset-calculator');
     if (resetCalculatorBtn) {
         resetCalculatorBtn.addEventListener('click', function() {
             if (confirm("Möchten Sie wirklich alle Eingaben zurücksetzen?")) {
-                // Hier eine Funktion aufrufen, die den Reset durchführt
-                 // resetCalculator(); // Diese Funktion muss implementiert werden
                  window.location.reload(); // Einfachste Methode: Seite neu laden
             }
         });
@@ -223,16 +177,17 @@ function observeDataChanges() {
     const inputsToObserve = [
         'kaufpreis', 'wohnflaeche', 'eigenkapital', 'foerdermittel',
         'modernisierungskosten', 'moebel_kosten', 'umzugskosten', 'sonstige_kosten',
-        'grunderwerbsteuer_prozent', 'notar_prozent', 'makler_prozent'
+        'grunderwerbsteuer_prozent', 'notar_prozent', 'makler_prozent',
+        'objekttyp', 'nutzungsart', 'plz', 'ort', 'bundesland', 'lage', 'baujahr', 'zustand' // Objekt-Felder für Übersicht
         // Fügen Sie weitere IDs hinzu, falls nötig
     ];
 
     inputsToObserve.forEach(inputId => {
         const inputElement = document.getElementById(inputId);
         if (inputElement) {
-            inputElement.addEventListener('input', () => {
+            const eventType = (inputElement.tagName === 'SELECT') ? 'change' : 'input';
+            inputElement.addEventListener(eventType, () => {
                  // Rufen Sie die relevanten Update-Funktionen auf
-                 // Diese sollten idealerweise prüfen, ob sie benötigt werden
                  if (typeof updateKaufpreisQm === 'function') updateKaufpreisQm();
                  if (typeof updateKaufnebenkosten === 'function') updateKaufnebenkosten();
                  if (typeof updateGesamtkosten === 'function') updateGesamtkosten();
@@ -248,18 +203,23 @@ function observeDataChanges() {
      if (darlehenContainer) {
          // Verwende Event Delegation, da Darlehen hinzugefügt/entfernt werden
          darlehenContainer.addEventListener('input', (event) => {
-             // Prüfen, ob das Event von einem relevanten Input innerhalb eines Darlehensblocks stammt
+             // Prüfen, ob das Event von einem relevanten Input/Select innerhalb eines Darlehensblocks stammt
              if (event.target.closest('.darlehen-block') && (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT')) {
                   // Update-Funktionen aufrufen, die von Darlehensänderungen abhängen
                   if (typeof updateFinanzierungsSumme === 'function') updateFinanzierungsSumme();
                   if (typeof updateOverview === 'function') updateOverview();
                   // Tilgungsplan muss ggf. auch aktualisiert werden, wenn er sichtbar ist
-                  const tilgungsplanContainer = document.getElementById('tilgungsplanContainerAnalyse');
-                  if (tilgungsplanContainer && !tilgungsplanContainer.classList.contains('hidden') && typeof updateTilgungsplan === 'function') {
-                      updateTilgungsplan();
-                  }
+                  updateTilgungsplanVisibility(); // Nutzt interne Prüfung in financing.js
              }
          });
+          // Beobachte auch Checkboxen/Selects (change event)
+          darlehenContainer.addEventListener('change', (event) => {
+             if (event.target.closest('.darlehen-block') && (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT')) {
+                   if (typeof updateFinanzierungsSumme === 'function') updateFinanzierungsSumme();
+                   if (typeof updateOverview === 'function') updateOverview();
+                    updateTilgungsplanVisibility();
+             }
+          });
           // Beobachte auch Klicks auf "Entfernen"-Buttons
           darlehenContainer.addEventListener('click', (event) => {
               if (event.target.closest('.darlehen-remove')) {
@@ -267,10 +227,7 @@ function observeDataChanges() {
                    setTimeout(() => {
                        if (typeof updateFinanzierungsSumme === 'function') updateFinanzierungsSumme();
                        if (typeof updateOverview === 'function') updateOverview();
-                           const tilgungsplanContainer = document.getElementById('tilgungsplanContainerAnalyse');
-                           if (tilgungsplanContainer && !tilgungsplanContainer.classList.contains('hidden') && typeof updateTilgungsplan === 'function') {
-                               updateTilgungsplan();
-                           }
+                       updateTilgungsplanVisibility();
                    }, 50); // 50ms Verzögerung
               }
           });
@@ -281,21 +238,33 @@ function observeDataChanges() {
      if (nutzungsartSelect) {
          nutzungsartSelect.addEventListener('change', () => {
              if (typeof updateOverview === 'function') updateOverview();
-             // Ggf. weitere spezifische Updates für Kapitalanlage-Felder
+             // Ggf. weitere spezifische Updates für Kapitalanlage-Felder in costs.js triggern
+              if (typeof initCostsData === 'function') {
+                  // Workaround: updateMietrendite wird innerhalb von initCostsData registriert
+                  // Wir könnten updateMietrendite global machen, oder hier einen Weg finden, es zu triggern.
+                  // Einfachster Weg: Daten neu holen und Rendite neu berechnen lassen
+                  const kaufpreisInput = document.getElementById('kaufpreis');
+                  const kaltmieteInput = document.getElementById('kaltmiete'); // Wird in object.js getoggled
+                  if (kaufpreisInput && kaltmieteInput && typeof updateMietrendite === 'function') {
+                      // updateMietrendite(); // Direkt aufrufen, wenn global verfügbar
+                      // Alternative: Event simulieren (weniger sauber)
+                      // kaufpreisInput.dispatchEvent(new Event('input'));
+                  }
+              }
          });
      }
 }
 
 
-// --- ENTFERNT --- : Redundante API-Integration Funktionen hier entfernt.
-// Diese befinden sich jetzt ausschließlich in api-integration.js
-
-
 // Formatierungsfunktion für Währungsbeträge
 function formatCurrency(value) {
     // Prüfen, ob der Wert gültig ist
-    if (isNaN(value) || value === null) {
+    if (isNaN(value) || value === null || value === undefined) {
         return '-'; // Oder einen anderen Platzhalter zurückgeben
+    }
+    // Bei sehr kleinen Werten (z.B. Rundungsfehler nahe 0), zeige 0 an
+    if (Math.abs(value) < 0.01) {
+        value = 0;
     }
     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
 }
@@ -303,7 +272,7 @@ function formatCurrency(value) {
 // Formatierungsfunktion für Prozentsätze
 function formatPercent(value) {
      // Prüfen, ob der Wert gültig ist
-     if (isNaN(value) || value === null) {
+     if (isNaN(value) || value === null || value === undefined) {
          return '-'; // Oder einen anderen Platzhalter zurückgeben
      }
     return new Intl.NumberFormat('de-DE', {
@@ -312,9 +281,6 @@ function formatPercent(value) {
         maximumFractionDigits: 2
     }).format(value / 100);
 }
-
-// --- ENTFERNT --- : Redundante toggleApiSection Funktion hier entfernt.
-// Diese befindet sich jetzt ausschließlich in api-integration.js
 
 
 // Funktion zur Aktualisierung der Übersicht (Beispielimplementierung)
@@ -327,16 +293,27 @@ function updateOverview() {
      const ort = document.getElementById('ort')?.value || '';
      const plz = document.getElementById('plz')?.value || '';
      const standort = (plz || ort) ? `${plz} ${ort}`.trim() : '-';
-     const wohnflaeche = document.getElementById('wohnflaeche')?.value ? document.getElementById('wohnflaeche').value + ' m²' : '-';
+     let wohnflaecheVal = parseFloat(document.getElementById('wohnflaeche')?.value) || 0;
+     const wohnflaeche = wohnflaecheVal > 0 ? wohnflaecheVal + ' m²' : '-';
      const kaufpreis = parseFloat(document.getElementById('kaufpreis')?.value) || 0;
 
-     // Finanzierungsdaten holen
-     const darlehenSumme = parseFloat(document.getElementById('darlehen_summe')?.textContent.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+     // Finanzierungsdaten holen (verwende sichere Methoden, die NaN/null handhaben)
+     let darlehenSumme = 0;
+     const darlehenSummeElement = document.getElementById('darlehen_summe');
+     if (darlehenSummeElement) {
+        darlehenSumme = parseFloat(darlehenSummeElement.textContent?.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+     }
      const eigenkapital = parseFloat(document.getElementById('eigenkapital')?.value) || 0;
-     const rateSumme = parseFloat(document.getElementById('rate_summe')?.textContent.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+      let rateSumme = 0;
+      const rateSummeElement = document.getElementById('rate_summe');
+      if (rateSummeElement) {
+          rateSumme = parseFloat(rateSummeElement.textContent?.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+      }
+
 
      // Zinsbindung (komplexer, da mehrere Darlehen möglich) - hier vereinfacht das erste Darlehen
-     const ersteZinsbindung = document.querySelector('#darlehen-1 .darlehen-zinsbindung')?.value;
+     const ersteZinsbindungInput = document.querySelector('#darlehen-1 .darlehen-zinsbindung');
+     const ersteZinsbindung = ersteZinsbindungInput?.value;
      const zinsbindungText = ersteZinsbindung ? ersteZinsbindung + ' Jahre' : '-';
 
      // Übersicht aktualisieren
@@ -352,18 +329,22 @@ function updateOverview() {
 
      // Schnellanalyse aktualisieren (Beispiel)
      const quickAnalysisDiv = document.getElementById('quick-analysis');
-     if (kaufpreis > 0 && darlehenSumme > 0 && rateSumme > 0) {
-         const ekQuote = parseFloat(document.getElementById('eigenkapital_quote')?.textContent.replace('%','')) || 0;
+     const gesamtkostenText = document.getElementById('fs_gesamtkosten')?.textContent || '0';
+     const gesamtkosten = parseFloat(gesamtkostenText.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+
+     if (kaufpreis > 0 && gesamtkosten > 0 && darlehenSumme > 0 && rateSumme > 0) {
+         const ekQuoteVal = (eigenkapital / gesamtkosten) * 100; // EK-Quote hier neu berechnen
+         const ekQuote = formatPercent(ekQuoteVal); // Formatieren
          quickAnalysisDiv.innerHTML = `
-             <p>Basierend auf Ihren Eingaben finanzieren Sie eine Immobilie für ${formatCurrency(kaufpreis)} mit ${formatCurrency(darlehenSumme)} Darlehensvolumen.</p>
-             <p>Ihre monatliche Gesamtbelastung beträgt ${formatCurrency(rateSumme)} bei einer Eigenkapitalquote von ${ekQuote.toFixed(1)}%.</p>
-             <p class="${ekQuote < 15 ? 'text-red-600' : 'text-green-600'}">
-                 ${ekQuote < 15 ? 'Hinweis: Die Eigenkapitalquote ist relativ niedrig.' : 'Die Eigenkapitalquote scheint solide.'}
+             <p>Basierend auf Ihren Eingaben finanzieren Sie eine Immobilie für ${formatCurrency(kaufpreis)} (Gesamtkosten: ${formatCurrency(gesamtkosten)}) mit ${formatCurrency(darlehenSumme)} Darlehensvolumen.</p>
+             <p>Ihre monatliche Gesamtbelastung beträgt ${formatCurrency(rateSumme)} bei einer Eigenkapitalquote von ca. ${ekQuote}.</p>
+             <p class="${ekQuoteVal < 15 ? 'text-red-600 font-semibold' : 'text-green-600'}">
+                 ${ekQuoteVal < 15 ? '<i class="fas fa-exclamation-triangle mr-1"></i> Hinweis: Die Eigenkapitalquote ist relativ niedrig.' : '<i class="fas fa-check-circle mr-1"></i> Die Eigenkapitalquote scheint solide.'}
              </p>
-             <button onclick="navigateToTab('analysis')" class="mt-2 px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition">Zur Detailanalyse</button>
+             <button onclick="navigateToTab('analysis')" class="mt-2 px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 transition">Zur Detailanalyse</button>
          `;
      } else {
-         quickAnalysisDiv.textContent = 'Füllen Sie die Objektdaten und Finanzierungsdetails aus, um eine automatische Analyse zu erhalten.';
+         quickAnalysisDiv.textContent = 'Füllen Sie die Objektdaten, Kosten und Finanzierungsdetails aus, um eine automatische Schnellanalyse zu erhalten.';
      }
  }
 
