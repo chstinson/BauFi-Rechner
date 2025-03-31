@@ -128,6 +128,7 @@ async function performApiAnalysis(analyseTyp, analyseDaten, provider, apiKey) {
 }
 
 // --- API Call Functions (OpenAI, Claude, DeepSeek) ---
+// WICHTIG: Diese Funktionen sind jetzt global, damit object.js sie nutzen kann.
 // (Keine Änderungen hier gegenüber deinem Code, aber stelle sicher, dass die Endpunkte aktuell sind)
 async function callOpenAI(prompt, apiKey) {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -139,10 +140,10 @@ async function callOpenAI(prompt, apiKey) {
         body: JSON.stringify({
             model: 'gpt-4', // Oder ein anderes verfügbares Modell wie gpt-4-turbo
             messages: [
-                { role: 'system', content: 'Du bist ein Experte für Immobilienfinanzierung in Deutschland. Analysiere die übermittelten Daten und gib fundierte, strukturierte Antworten ausschließlich in gut formatiertem HTML zurück. Verwende ausschließlich Tailwind CSS Klassen (z.B. class="text-xl font-bold mb-2", class="p-4 border rounded bg-gray-50") für das Styling. Erzeuge Abschnitte mit Überschriften (h3, h4), Absätze (p), Listen (ul/ol/li) und ggf. Tabellen (table/thead/tbody/tr/th/td mit Tailwind Klassen). Fasse dich prägnant, aber informativ.' },
+                { role: 'system', content: 'Du bist ein Experte für Immobilienfinanzierung in Deutschland. Analysiere die übermittelten Daten und gib fundierte, strukturierte Antworten ausschließlich in gut formatiertem HTML zurück. Verwende ausschließlich Tailwind CSS Klassen (z.B. class="text-xl font-bold mb-2", class="p-4 border rounded bg-gray-50") für das Styling. Erzeuge Abschnitte mit Überschriften (h3, h4), Absätze (p), Listen (ul/ol/li) und ggf. Tabellen (table/thead/tbody/tr/th/td mit Tailwind Klassen). Fasse dich prägnant, aber informativ. Wenn du nur nach einer Kategorie gefragt wirst (Sehr gut, Gut, Mittel, Einfach), antworte NUR mit dieser Kategorie ohne HTML.' },
                 { role: 'user', content: prompt }
             ],
-            temperature: 0.6, // Etwas konservativer
+            temperature: 0.5, // Ggf. niedriger für Kategorisierung
             max_tokens: 4000 // Maximal erlaubte Tokens prüfen
         })
     });
@@ -158,6 +159,7 @@ async function callOpenAI(prompt, apiKey) {
         console.error('Ungültige Antwort von OpenAI:', data);
         throw new Error('Ungültige oder leere Antwort von OpenAI erhalten.');
     }
+    // Gibt den reinen Text oder HTML zurück, je nach Prompt
     return data.choices[0].message.content;
 }
 
@@ -174,7 +176,7 @@ async function callClaude(prompt, apiKey) {
             messages: [
                 { role: 'user', content: prompt }
             ],
-            system: 'Du bist ein Experte für Immobilienfinanzierung in Deutschland. Analysiere die übermittelten Daten und gib fundierte, strukturierte Antworten ausschließlich in gut formatiertem HTML zurück. Verwende ausschließlich Tailwind CSS Klassen (z.B. class="text-xl font-bold mb-2", class="p-4 border rounded bg-gray-50") für das Styling. Erzeuge Abschnitte mit Überschriften (h3, h4), Absätze (p), Listen (ul/ol/li) und ggf. Tabellen (table/thead/tbody/tr/th/td mit Tailwind Klassen). Fasse dich prägnant, aber informativ.',
+            system: 'Du bist ein Experte für Immobilienfinanzierung in Deutschland. Analysiere die übermittelten Daten und gib fundierte, strukturierte Antworten ausschließlich in gut formatiertem HTML zurück. Verwende ausschließlich Tailwind CSS Klassen (z.B. class="text-xl font-bold mb-2", class="p-4 border rounded bg-gray-50") für das Styling. Erzeuge Abschnitte mit Überschriften (h3, h4), Absätze (p), Listen (ul/ol/li) und ggf. Tabellen (table/thead/tbody/tr/th/td mit Tailwind Klassen). Fasse dich prägnant, aber informativ. Wenn du nur nach einer Kategorie gefragt wirst (Sehr gut, Gut, Mittel, Einfach), antworte NUR mit dieser Kategorie ohne HTML.',
             max_tokens: 4000 // Prüfe max_tokens für Claude Modelle
         })
     });
@@ -192,6 +194,7 @@ async function callClaude(prompt, apiKey) {
          console.error('Ungültige Antwort von Claude:', data);
          throw new Error('Ungültige oder leere Antwort von Claude erhalten.');
      }
+    // Gibt den reinen Text oder HTML zurück, je nach Prompt
     return data.content[0].text;
 }
 
@@ -205,10 +208,10 @@ async function callDeepSeek(prompt, apiKey) {
         body: JSON.stringify({
             model: 'deepseek-chat', // Oder anderes Modell
             messages: [
-                { role: 'system', content: 'Du bist ein Experte für Immobilienfinanzierung in Deutschland. Analysiere die übermittelten Daten und gib fundierte, strukturierte Antworten ausschließlich in gut formatiertem HTML zurück. Verwende ausschließlich Tailwind CSS Klassen (z.B. class="text-xl font-bold mb-2", class="p-4 border rounded bg-gray-50") für das Styling. Erzeuge Abschnitte mit Überschriften (h3, h4), Absätze (p), Listen (ul/ol/li) und ggf. Tabellen (table/thead/tbody/tr/th/td mit Tailwind Klassen). Fasse dich prägnant, aber informativ.' },
+                { role: 'system', content: 'Du bist ein Experte für Immobilienfinanzierung in Deutschland. Analysiere die übermittelten Daten und gib fundierte, strukturierte Antworten ausschließlich in gut formatiertem HTML zurück. Verwende ausschließlich Tailwind CSS Klassen (z.B. class="text-xl font-bold mb-2", class="p-4 border rounded bg-gray-50") für das Styling. Erzeuge Abschnitte mit Überschriften (h3, h4), Absätze (p), Listen (ul/ol/li) und ggf. Tabellen (table/thead/tbody/tr/th/td mit Tailwind Klassen). Fasse dich prägnant, aber informativ. Wenn du nur nach einer Kategorie gefragt wirst (Sehr gut, Gut, Mittel, Einfach), antworte NUR mit dieser Kategorie ohne HTML.' },
                 { role: 'user', content: prompt }
             ],
-            temperature: 0.6,
+            temperature: 0.5, // Ggf. niedriger für Kategorisierung
             max_tokens: 4000
         })
     });
@@ -224,6 +227,7 @@ async function callDeepSeek(prompt, apiKey) {
         console.error('Ungültige Antwort von DeepSeek:', data);
         throw new Error('Ungültige oder leere Antwort von DeepSeek erhalten.');
     }
+    // Gibt den reinen Text oder HTML zurück, je nach Prompt
     return data.choices[0].message.content;
 }
 
@@ -253,7 +257,7 @@ async function validateGlobalApiKey() {
         return;
     }
 
-    validateButton.textContent = 'Prüfe...';
+    validateButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Prüfe...'; // Loading-Icon
     validateButton.disabled = true;
     if(typeof showApiStatus === 'function') showApiStatus('pending', `Validiere API-Schlüssel für ${getProviderName(apiProvider)}...`);
      window.BauFiRechner.apiKey = null; // Schlüssel vor Prüfung zurücksetzen
@@ -279,13 +283,13 @@ async function validateGlobalApiKey() {
              if(typeof showApiStatus === 'function') showApiStatus(true, `API-Schlüssel für ${getProviderName(apiProvider)} erfolgreich validiert.`);
             // UI im Analyse-Tab aktualisieren (direkt oder über api-integration.js)
             if(typeof updateKiCheckInAnalyseTab === 'function') updateKiCheckInAnalyseTab(true, apiProvider); // Pass provider for name
-            enableAnalysisOptions(); // Analyseoptionen jetzt freischalten
+            enableAnalysisOptions(); // Analyseoptionen UND Lage-Button jetzt freischalten
         } else {
             // Status aktualisieren für ungültigen Key
              if(typeof showApiStatus === 'function') showApiStatus(false, `Der API-Schlüssel für ${getProviderName(apiProvider)} scheint ungültig zu sein. Bitte prüfen.`);
             // UI im Analyse-Tab zurücksetzen
              if(typeof resetKiCheckInAnalyseTab === 'function') resetKiCheckInAnalyseTab();
-            disableAnalysisOptions(); // Analyseoptionen wieder sperren
+            disableAnalysisOptions(); // Analyseoptionen UND Lage-Button wieder sperren
         }
     } catch (error) {
         console.error('Fehler bei der API-Validierung:', error);
@@ -295,7 +299,7 @@ async function validateGlobalApiKey() {
          if(typeof resetKiCheckInAnalyseTab === 'function') resetKiCheckInAnalyseTab();
         disableAnalysisOptions();
     } finally {
-        validateButton.textContent = 'Validieren';
+        validateButton.innerHTML = '<i class="fas fa-check mr-1"></i> Validieren'; // Restore original icon/text
         validateButton.disabled = false;
          // Status-Nachricht nach kurzer Zeit ausblenden? Optional.
          // setTimeout(() => { document.getElementById('api-status')?.classList.add('hidden'); }, 5000);
@@ -438,15 +442,16 @@ function collectAnalysisData() {
 
         // Annahmen für Belastungsanalyse (einfach)
         // WICHTIG: Diese sollten idealerweise Eingabefelder sein!
+        const wohnflaecheValue = parseFloat(analyseDaten.objektdaten.wohnflaeche) || 100; // Fallback-Wohnfläche
         const monatlichesNettoeinkommen = rateSumme > 0 ? rateSumme * 3 : 3000; // Beispielhafte Annahme oder Mindestwert
-        const monatlicheNebenkosten = kaufpreis > 0 ? (kaufpreis * 0.003) / 12 : 200; // Grobe Annahme für lfd. NK (ca. 3€/m²/Jahr) -> besser wohnfläche nehmen!
+        const monatlicheNebenkosten = (wohnflaecheValue * 3.5) / 12; // Grobe Annahme für lfd. NK (ca. 3.5€/m²/Monat)
         const monatlicheWohnkosten = rateSumme + monatlicheNebenkosten;
 
         return {
             objektdaten: { objekttyp, nutzungsart, wohnflaeche, grundstuecksflaeche, plz, ort, bundesland, lage, baujahr, zustand },
             kostendaten: { kaufpreis, kaufpreisQm, grunderwerbsteuer, notar, makler, nebenkostenGesamt, modernisierungskosten },
             finanzierungsdaten: { eigenkapital, eigenkapitalQuote: eigenkapitalQuote, foerdermittel, zuFinanzieren, darlehen, darlehenSumme, rateSumme, beleihungsauslauf },
-            belastungsdaten: { monatlichesNettoeinkommen, monatlicheWohnkosten, hinweis: "Annahmen für Nettoeinkommen und Wohnkosten!" }
+            belastungsdaten: { monatlichesNettoeinkommen, monatlicheWohnkosten, hinweis: "Annahmen für Nettoeinkommen und Wohnnebenkosten!" }
         };
     } catch (error) {
         console.error("Fehler beim Sammeln der Analysedaten:", error);
@@ -508,36 +513,42 @@ Ich benötige eine detaillierte Analyse für eine Baufinanzierung in Deutschland
         case 'marktdaten':
             spezifischeAnweisung += `
 Bitte führe eine **Marktdatenanalyse** für die oben beschriebene Immobilie durch. Bewerte:
-1.  Angemessenheit des Kaufpreises und des Preises pro Quadratmeter im regionalen Vergleich (PLZ/Ort).
-2.  Berücksichtigung von Lage, Zustand und Baujahr bei der Preiseinschätzung.
-3.  Kurze Einschätzung zur potenziellen Wertentwicklung am Standort (falls möglich).
-Gib eine klare Einschätzung (z.B. günstig, marktgerecht, teuer) mit Begründung.`;
+1.  Angemessenheit des Kaufpreises und des Preises pro Quadratmeter im regionalen Vergleich (PLZ/Ort). Nutze aktuelle Vergleichsdaten, soweit verfügbar.
+2.  Berücksichtigung von Lage (${analyseDaten.objektdaten.lage}), Zustand (${analyseDaten.objektdaten.zustand}) und Baujahr (${analyseDaten.objektdaten.baujahr}) bei der Preiseinschätzung.
+3.  Kurze Einschätzung zur potenziellen Wertentwicklung am Standort (basierend auf Makrolage-Trends).
+Gib eine klare Einschätzung (z.B. günstig, marktgerecht, leicht überteuert, teuer) mit Begründung in HTML mit Tailwind-Klassen.`;
             break;
         case 'belastung':
             spezifischeAnweisung += `
-Bitte führe eine **Belastbarkeitsanalyse** durch. Bewerte:
-1.  Die Höhe der monatlichen Gesamtbelastung (${_formatCurrency(analyseDaten.finanzierungsdaten.rateSumme)}) im Verhältnis zum angenommenen monatlichen Haushaltsnettoeinkommen von ca. **${_formatCurrency(analyseDaten.belastungsdaten.monatlichesNettoeinkommen)}**. (Hinweis: Dies ist eine Annahme!)
-2.  Die geschätzten gesamten monatlichen Wohnkosten (Rate + Nebenkosten) von ca. **${_formatCurrency(analyseDaten.belastungsdaten.monatlicheWohnkosten)}**.
-3.  Risiken (Zinsänderungsrisiko nach Zinsbindung, Puffer für Unvorhergesehenes).
-4.  Eine Einschätzung, ob die Finanzierung tragfähig erscheint (z.B. komfortabel, tragfähig, angespannt, kritisch).`;
+Bitte führe eine **Belastbarkeitsanalyse** durch. Nutze die folgenden *angenommenen* Haushaltsdaten:
+*   *Annahme:* Monatliches Haushaltsnettoeinkommen: ca. **${_formatCurrency(analyseDaten.belastungsdaten.monatlichesNettoeinkommen)}**
+*   *Annahme:* Geschätzte monatliche Wohnnebenkosten (ohne Rate): ca. **${_formatCurrency(analyseDaten.belastungsdaten.monatlicheWohnkosten - analyseDaten.finanzierungsdaten.rateSumme)}**
+
+Bewerte auf dieser Basis:
+1.  Die Höhe der monatlichen Gesamtbelastung (Rate: ${_formatCurrency(analyseDaten.finanzierungsdaten.rateSumme)}) im Verhältnis zum angenommenen Einkommen (Quote berechnen).
+2.  Die geschätzten gesamten monatlichen Wohnkosten (Rate + angenommene Nebenkosten) von ca. **${_formatCurrency(analyseDaten.belastungsdaten.monatlicheWohnkosten)}**.
+3.  Risiken (insbesondere Zinsänderungsrisiko nach Zinsbindung, Puffer für Unvorhergesehenes).
+4.  Eine Einschätzung, ob die Finanzierung tragfähig erscheint (z.B. komfortabel, gut tragfähig, angespannt, kritisch). Weise explizit auf die verwendeten Annahmen hin!
+Formatiere die Antwort in HTML mit Tailwind-Klassen.`;
             break;
         case 'optimierung':
             spezifischeAnweisung += `
 Bitte gib **konkrete Optimierungsvorschläge** für diese Finanzierungsstruktur. Analysiere insbesondere:
-1.  Potenzial bei Eigenkapitalquote und Beleihungsauslauf.
-2.  Möglichkeiten bei der Darlehensstruktur (Zinsen, Tilgungshöhe, Zinsbindungsfristen).
-3.  Sinnhaftigkeit und Einsatz der Sondertilgungsoptionen.
-4.  Gibt es offensichtliche Lücken oder Nachteile in der aktuellen Struktur?
-Formuliere klare Handlungsempfehlungen.`;
+1.  Potenzial bei Eigenkapitalquote (${analyseDaten.finanzierungsdaten.eigenkapitalQuote.toFixed(1)}%) und Beleihungsauslauf (${analyseDaten.finanzierungsdaten.beleihungsauslauf.toFixed(1)}%).
+2.  Möglichkeiten bei der Darlehensstruktur (Zinssätze, Tilgungshöhen, Zinsbindungsfristen im Mix). Gibt es ggf. bessere Alternativen?
+3.  Sinnhaftigkeit und Einsatz der Sondertilgungsoptionen im Detail (Rhythmus, Höhe).
+4.  Gibt es offensichtliche Lücken, Nachteile oder Risiken in der aktuellen Struktur?
+Formuliere klare Handlungsempfehlungen in HTML mit Tailwind-Klassen.`;
             break;
         case 'vollstaendig':
             spezifischeAnweisung += `
-Bitte führe eine **vollständige Plausibilitätsprüfung und Analyse** durch. Diese soll umfassen:
-1.  **Markteinschätzung:** Ist der Kaufpreis realistisch?
-2.  **Belastbarkeit:** Ist die Rate tragfähig (Annahme Einkommen: ca. ${_formatCurrency(analyseDaten.belastungsdaten.monatlichesNettoeinkommen)})?
-3.  **Struktur:** Sind Zinsen, Tilgung, Zinsbindung sinnvoll gewählt? Gibt es Risiken?
-4.  **Optimierungspotenzial:** Wo gibt es Verbesserungsmöglichkeiten?
-5.  **Gesamtbewertung:** Eine zusammenfassende Einschätzung (z.B. solide, gut mit Potenzial, riskant) und eine Risikoeinstufung (niedrig, mittel, hoch).`;
+Bitte führe eine **vollständige Plausibilitätsprüfung und Analyse** durch. Nutze die *angenommenen* Haushaltsdaten für die Belastbarkeit (Nettoeinkommen: ca. ${_formatCurrency(analyseDaten.belastungsdaten.monatlichesNettoeinkommen)}). Die Analyse soll umfassen:
+1.  **Markteinschätzung:** Ist der Kaufpreis realistisch für die Lage/Objekt?
+2.  **Belastbarkeit:** Ist die Rate unter den Annahmen tragfähig? Welche Quote ergibt sich?
+3.  **Struktur:** Sind Zinsen, Tilgung, Zinsbindung(en) sinnvoll gewählt? Gibt es strukturelle Risiken (z.B. hohe Restschulden, kurze Bindungen)?
+4.  **Optimierungspotenzial:** Wo gibt es konkrete Verbesserungsmöglichkeiten (EK, Rate, Tilgung, Laufzeit, Sondertilgung)?
+5.  **Gesamtbewertung:** Eine zusammenfassende Einschätzung (z.B. solide und gut geplant, gut mit Optimierungspotenzial, tendenziell riskant, kritisch) und eine kurze Risikoeinstufung (niedrig, mittel, hoch).
+Formatiere die gesamte Antwort als umfassenden Bericht in HTML mit Tailwind-Klassen (nutze h3, h4, p, ul/li).`;
             break;
     }
 
@@ -548,23 +559,39 @@ Bitte führe eine **vollständige Plausibilitätsprüfung und Analyse** durch. D
 // Analyse-Optionen aktivieren/deaktivieren
 function enableAnalysisOptions() {
     const analyseOptionen = document.getElementById('analyse-optionen');
-    if (!analyseOptionen) return;
-    analyseOptionen.querySelectorAll('div[id$="-analyse"]').forEach(option => {
-        option.classList.remove('opacity-50', 'cursor-not-allowed', 'hover:shadow-none');
-        option.classList.add('cursor-pointer', 'hover:shadow-md');
-        // Ensure event listeners are attached (though they are attached in initAnalysis)
-    });
+    const lageButton = document.getElementById('ermittle-lagekategorie-btn');
+
+    // Analyse-Kacheln aktivieren
+    if (analyseOptionen) {
+        analyseOptionen.querySelectorAll('div[id$="-analyse"]').forEach(option => {
+            option.classList.remove('opacity-50', 'cursor-not-allowed');
+            option.classList.add('cursor-pointer', 'hover:shadow-md');
+        });
+    }
+    // Lage-Button aktivieren
+    if (lageButton) {
+        lageButton.disabled = false;
+        lageButton.title = 'Lagekategorie mit KI ermitteln'; // Tooltip aktualisieren
+    }
 }
 
 function disableAnalysisOptions() {
     const analyseOptionen = document.getElementById('analyse-optionen');
-     if (!analyseOptionen) return;
-    analyseOptionen.querySelectorAll('div[id$="-analyse"]').forEach(option => {
-        option.classList.add('opacity-50', 'cursor-not-allowed', 'hover:shadow-none');
-         option.classList.remove('cursor-pointer', 'hover:shadow-md');
-         // Optionally remove event listeners here if needed, but disabling visually/functionally might be enough
-    });
-    // Reset Analysis View
+    const lageButton = document.getElementById('ermittle-lagekategorie-btn');
+
+    // Analyse-Kacheln deaktivieren
+    if (analyseOptionen) {
+        analyseOptionen.querySelectorAll('div[id$="-analyse"]').forEach(option => {
+            option.classList.add('opacity-50', 'cursor-not-allowed');
+            option.classList.remove('cursor-pointer', 'hover:shadow-md');
+        });
+    }
+    // Lage-Button deaktivieren
+    if (lageButton) {
+         lageButton.disabled = true;
+         lageButton.title = 'API-Schlüssel benötigt'; // Tooltip aktualisieren
+    }
+    // Reset Analysis View (optional, aber sinnvoll)
     resetAnalysis();
 }
 
@@ -578,9 +605,7 @@ function resetAnalysis() {
     optionenContainer.classList.remove('hidden');
      document.getElementById('analyse-inhalt').innerHTML = ''; // Inhalt leeren
      // Deaktiviere Optionen wieder, falls kein gültiger Key (neu) gesetzt ist
-     if (!window.BauFiRechner?.apiKey) {
-        disableAnalysisOptions();
-    }
+     // wird jetzt durch disableAnalysisOptions() erledigt, wenn nötig
 }
 
 // Provider-Name abrufen (Hilfsfunktion)
