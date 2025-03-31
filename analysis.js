@@ -2,12 +2,10 @@
 // Produktionsversion mit echter API-Integration für KI-Plausibilisierung des BauFi-Rechners
 
 function initAnalysis() {
-    // Event Listener für Haushaltsdaten-Inputs (optional, falls Validierung live erfolgen soll)
-    // document.getElementById('monatliches-haushaltsnettoeinkommen')?.addEventListener('input', validateHaushaltsdaten);
-    // document.getElementById('monatliche-kreditraten')?.addEventListener('input', validateHaushaltsdaten);
+    // Event Listener für Haushaltsdaten-Inputs im Finanzierung-Tab (werden über main.js -> observeDataChanges abgedeckt)
 
     // Analyse-Optionen Event-Listener initial deaktiviert, bis API-Key valide ist
-    disableAnalysisOptions(); // Startet deaktiviert
+    disableAnalysisOptions();
     document.getElementById('marktdaten-analyse')?.addEventListener('click', () => startAnalysis('marktdaten'));
     document.getElementById('belastungs-analyse')?.addEventListener('click', () => startAnalysis('belastung'));
     document.getElementById('optimierungs-analyse')?.addEventListener('click', () => startAnalysis('optimierung'));
@@ -48,11 +46,33 @@ async function startAnalysis(analyseTyp) {
          if(typeof showApiStatus === 'function') {
              showApiStatus('error', `Analyse nicht möglich: ${errorMessage}`);
          }
-         // Scroll zum Haushaltsdaten-Abschnitt, falls der Fehler das Einkommen betrifft
+         // === GEÄNDERT: Bei Fehler zum Finanzierung-Tab navigieren und scrollen ===
          if (errorMessage.toLowerCase().includes('haushaltsnettoeinkommen')) {
-            document.getElementById('monatliches-haushaltsnettoeinkommen')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            document.getElementById('monatliches-haushaltsnettoeinkommen')?.focus();
+             if(typeof navigateToTab === 'function') navigateToTab('financing');
+             // Kurze Verzögerung, damit der Tab sichtbar ist, bevor gescrollt wird
+             setTimeout(() => {
+                 document.getElementById('monatliches-haushaltsnettoeinkommen')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                 document.getElementById('monatliches-haushaltsnettoeinkommen')?.focus();
+             }, 100); // 100ms sollte reichen
+         } else if (errorMessage.toLowerCase().includes('darlehen') || errorMessage.toLowerCase().includes('rate')) {
+              if(typeof navigateToTab === 'function') navigateToTab('financing');
+               setTimeout(() => {
+                   document.getElementById('darlehen-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+               }, 100);
+         } else if (errorMessage.toLowerCase().includes('kaufpreis') || errorMessage.toLowerCase().includes('kosten')) {
+              if(typeof navigateToTab === 'function') navigateToTab('costs');
+              setTimeout(() => {
+                   document.getElementById('kaufpreis')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                   document.getElementById('kaufpreis')?.focus();
+               }, 100);
+         } else if (errorMessage.toLowerCase().includes('wohnfläche') || errorMessage.toLowerCase().includes('standort')) {
+             if(typeof navigateToTab === 'function') navigateToTab('property');
+              setTimeout(() => {
+                  document.getElementById('wohnflaeche')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                   document.getElementById('wohnflaeche')?.focus();
+               }, 100);
          }
+         // =====================================================================
          return;
     }
 
@@ -125,7 +145,6 @@ async function performApiAnalysis(analyseTyp, analyseDaten, provider, apiKey) {
 }
 
 // --- API Call Functions (OpenAI, Claude, DeepSeek) ---
-// (Keine Änderungen hier notwendig, bleiben global)
 async function callOpenAI(prompt, apiKey) {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -225,73 +244,81 @@ async function callDeepSeek(prompt, apiKey) {
 
 
 // --- API Key Validation Logic ---
-// (Keine Änderungen hier notwendig)
 async function validateGlobalApiKey() {
     const apiProvider = window.BauFiRechner?.apiProvider;
     const apiKeyInput = document.getElementById('global-api-key');
     const validateButton = document.getElementById('validate-global-api');
 
-    if (!apiProvider || !apiKeyInput || !validateButton) {
-        console.error("Fehlende Elemente für API-Validierung");
-        if(typeof showApiStatus === 'function') showApiStatus('error', 'Interner Fehler: UI-Elemente nicht gefunden.');
-        return;
-    }
-
+    if (!apiProvider || !apiKeyInput || !validateButton) return;
     const apiKey = apiKeyInput.value.trim();
-
-    if (!apiProvider) {
-         if(typeof showApiStatus === 'function') showApiStatus('error', 'Bitte wählen Sie zuerst einen API-Provider aus.');
-        return;
-    }
-    if (!apiKey) {
-        if(typeof showApiStatus === 'function') showApiStatus('error', 'Bitte geben Sie Ihren API-Schlüssel ein.');
+    if (!apiProvider || !apiKey) {
+        showApiStatus?.('error', !apiProvider ? 'Bitte wählen Sie zuerst einen API-Provider aus.' : 'Bitte geben Sie Ihren API-Schlüssel ein.');
         return;
     }
 
     validateButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Prüfe...';
     validateButton.disabled = true;
-    if(typeof showApiStatus === 'function') showApiStatus('pending', `Validiere API-Schlüssel für ${getProviderName(apiProvider)}...`);
-     window.BauFiRechner.apiKey = null;
+    showApiStatus?.('pending', `Validiere API-Schlüssel für ${getProviderName(apiProvider)}...`);
+    window.BauFiRechner.apiKey = null;
 
     try {
         let isValid = false;
-        console.log(`Starte Validierung für ${apiProvider}`);
         switch (apiProvider) {
             case 'openai': isValid = await validateOpenAIKey(apiKey); break;
             case 'anthropic': isValid = await validateClaudeKey(apiKey); break;
             case 'deepseek': isValid = await validateDeepSeekKey(apiKey); break;
-            default: throw new Error("Nicht unterstützter API-Provider für Validierung");
+            default: throw new Error("Nicht unterstützter API-Provider");
         }
-        console.log(`Validierungsergebnis für ${apiProvider}: ${isValid}`);
 
         if (isValid) {
             window.BauFiRechner.apiKey = apiKey;
-            if(typeof showApiStatus === 'function') showApiStatus(true, `API-Schlüssel für ${getProviderName(apiProvider)} erfolgreich validiert.`);
-            if(typeof updateKiCheckInAnalyseTab === 'function') updateKiCheckInAnalyseTab(true, apiProvider);
+            showApiStatus?.(true, `API-Schlüssel für ${getProviderName(apiProvider)} erfolgreich validiert.`);
+            updateKiCheckInAnalyseTab?.(true, apiProvider);
             enableAnalysisOptions();
         } else {
-            if(typeof showApiStatus === 'function') showApiStatus(false, `Der API-Schlüssel für ${getProviderName(apiProvider)} scheint ungültig zu sein. Bitte prüfen.`);
-            if(typeof resetKiCheckInAnalyseTab === 'function') resetKiCheckInAnalyseTab();
+            showApiStatus?.(false, `Der API-Schlüssel für ${getProviderName(apiProvider)} scheint ungültig zu sein. Bitte prüfen.`);
+            resetKiCheckInAnalyseTab?.();
             disableAnalysisOptions();
         }
     } catch (error) {
         console.error('Fehler bei der API-Validierung:', error);
-        if(typeof showApiStatus === 'function') showApiStatus(false, `Fehler bei der API-Validierung (${getProviderName(apiProvider)}): ${error.message || "Unbekannter Fehler"}`);
-         if(typeof resetKiCheckInAnalyseTab === 'function') resetKiCheckInAnalyseTab();
+        showApiStatus?.(false, `Fehler bei der API-Validierung (${getProviderName(apiProvider)}): ${error.message || "Unbekannter Fehler"}`);
+        resetKiCheckInAnalyseTab?.();
         disableAnalysisOptions();
     } finally {
         validateButton.innerHTML = '<i class="fas fa-check mr-1"></i> Validieren';
         validateButton.disabled = false;
     }
 }
-async function validateOpenAIKey(apiKey) { /* ... unverändert ... */ }
-async function validateClaudeKey(apiKey) { /* ... unverändert ... */ }
-async function validateDeepSeekKey(apiKey) { /* ... unverändert ... */ }
+async function validateOpenAIKey(apiKey) {
+    try {
+        const response = await fetch('https://api.openai.com/v1/models', { headers: { 'Authorization': `Bearer ${apiKey}` } });
+        return response.ok;
+    } catch (error) { console.error('OpenAI Validierungs-Netzwerkfehler:', error); throw error; }
+}
+async function validateClaudeKey(apiKey) {
+    try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+            body: JSON.stringify({ model: 'claude-3-haiku-20240307', max_tokens: 1, messages: [{ role: 'user', content: '.' }] })
+        });
+        if (response.status === 401 || response.status === 403) return false;
+        if (response.status === 429) return true; // Rate limit implies valid key
+        return response.ok;
+     } catch (error) { console.error('Claude Validierungs-Netzwerkfehler:', error); throw error; }
+}
+async function validateDeepSeekKey(apiKey) {
+    try {
+        const response = await fetch('https://api.deepseek.com/v1/models', { headers: { 'Authorization': `Bearer ${apiKey}` } });
+        return response.ok;
+    } catch (error) { console.error('DeepSeek Validierungs-Netzwerkfehler:', error); throw error; }
+}
 
 
 // --- Helper Functions ---
 
-// Analysedaten sammeln - JETZT MIT HAUSHALTSDATEN
+// Analysedaten sammeln - MIT HAUSHALTSDATEN
 function collectAnalysisData() {
     console.log("Sammle Analysedaten...");
     window.BauFiRechner.dataCollectionError = null;
@@ -356,8 +383,8 @@ function collectAnalysisData() {
 
         // Haushaltsdaten lesen
         const haushaltsnettoeinkommen = parseFloat(document.getElementById('monatliches-haushaltsnettoeinkommen')?.value) || 0;
-        const kreditraten = parseFloat(document.getElementById('monatliche-kreditraten')?.value) || 0; // Default 0 ist ok
-        const anzahlKinder = parseInt(document.getElementById('anzahl-kinder')?.value) || 0; // Default 0 ist ok
+        const kreditraten = parseFloat(document.getElementById('monatliche-kreditraten')?.value) || 0;
+        const anzahlKinder = parseInt(document.getElementById('anzahl-kinder')?.value) || 0;
 
         // Validierung
         const errors = [];
@@ -368,7 +395,8 @@ function collectAnalysisData() {
         if (darlehen.length > 0 && (!darlehenSumme || darlehenSumme <= 0)) errors.push("Darlehenssumme ist 0 (Finanzierung-Tab)");
         if (darlehen.length > 0 && (!rateSumme || rateSumme <= 0)) errors.push("Monatliche Rate ist 0 (Finanzierung-Tab)");
         if (plz === 'N/A' || ort === 'N/A' || bundesland === 'N/A' || bundesland === "") errors.push("Standort (PLZ, Ort, Bundesland im Objekt-Tab)");
-        if (!haushaltsnettoeinkommen || haushaltsnettoeinkommen <= 0) errors.push("Monatl. Haushaltsnettoeinkommen (Analyse-Tab)");
+        // Einkommen nur prüfen, wenn es für Analyse benötigt wird? Nein, jetzt immer da es eingegeben wird.
+        if (!haushaltsnettoeinkommen || haushaltsnettoeinkommen <= 0) errors.push("Monatl. Haushaltsnettoeinkommen (Finanzierung-Tab)");
 
         if (errors.length > 0) {
             const errorMsg = `Fehlende oder ungültige Kerndaten: ${errors.join(', ')}.`;
@@ -392,6 +420,7 @@ function collectAnalysisData() {
         return null;
     }
 }
+
 
 // Prompt für die jeweilige Analyse erstellen - MIT ECHTEN HAUSHALTSDATEN
 function createAnalysisPrompt(analyseTyp, analyseDaten) {
@@ -495,7 +524,6 @@ Formatiere die gesamte Antwort als umfassenden Bericht in HTML mit Tailwind-Klas
 
 
 // Analyse-Optionen aktivieren/deaktivieren
-// (Keine Änderungen hier notwendig)
 function enableAnalysisOptions() {
     const analyseOptionen = document.getElementById('analyse-optionen');
     const lageButton = document.getElementById('ermittle-lagekategorie-btn');
@@ -527,7 +555,6 @@ function disableAnalysisOptions() {
 }
 
 // Analyse zurücksetzen (UI-Teil)
-// (Keine Änderungen hier notwendig)
 function resetAnalysis() {
     const ergebnisContainer = document.getElementById('analyse-ergebnis-container');
     const optionenContainer = document.getElementById('analyse-optionen');
@@ -539,4 +566,7 @@ function resetAnalysis() {
 }
 
 // Provider-Name abrufen (Hilfsfunktion, definiert in api-integration.js)
+// function getProviderName(providerId) { ... }
+
 // Formatierungsfunktion für Währungsbeträge (Hilfsfunktion, definiert in main.js)
+// function formatCurrency(value) { ... }
