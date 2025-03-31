@@ -46,33 +46,31 @@ async function startAnalysis(analyseTyp) {
          if(typeof showApiStatus === 'function') {
              showApiStatus('error', `Analyse nicht möglich: ${errorMessage}`);
          }
-         // === GEÄNDERT: Bei Fehler zum Finanzierung-Tab navigieren und scrollen ===
+         // Bei Fehler zum relevanten Tab navigieren und scrollen
          if (errorMessage.toLowerCase().includes('haushaltsnettoeinkommen')) {
-             if(typeof navigateToTab === 'function') navigateToTab('financing');
-             // Kurze Verzögerung, damit der Tab sichtbar ist, bevor gescrollt wird
+             if(typeof navigateToTab === 'function') navigateToTab('financing'); // Zum Finanzierung-Tab
              setTimeout(() => {
                  document.getElementById('monatliches-haushaltsnettoeinkommen')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                  document.getElementById('monatliches-haushaltsnettoeinkommen')?.focus();
-             }, 100); // 100ms sollte reichen
+             }, 100);
          } else if (errorMessage.toLowerCase().includes('darlehen') || errorMessage.toLowerCase().includes('rate')) {
-              if(typeof navigateToTab === 'function') navigateToTab('financing');
+              if(typeof navigateToTab === 'function') navigateToTab('financing'); // Zum Finanzierung-Tab
                setTimeout(() => {
                    document.getElementById('darlehen-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                }, 100);
          } else if (errorMessage.toLowerCase().includes('kaufpreis') || errorMessage.toLowerCase().includes('kosten')) {
-              if(typeof navigateToTab === 'function') navigateToTab('costs');
+              if(typeof navigateToTab === 'function') navigateToTab('costs'); // Zum Kosten-Tab
               setTimeout(() => {
                    document.getElementById('kaufpreis')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                    document.getElementById('kaufpreis')?.focus();
                }, 100);
          } else if (errorMessage.toLowerCase().includes('wohnfläche') || errorMessage.toLowerCase().includes('standort')) {
-             if(typeof navigateToTab === 'function') navigateToTab('property');
+             if(typeof navigateToTab === 'function') navigateToTab('property'); // Zum Objekt-Tab
               setTimeout(() => {
                   document.getElementById('wohnflaeche')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                    document.getElementById('wohnflaeche')?.focus();
                }, 100);
          }
-         // =====================================================================
          return;
     }
 
@@ -145,6 +143,7 @@ async function performApiAnalysis(analyseTyp, analyseDaten, provider, apiKey) {
 }
 
 // --- API Call Functions (OpenAI, Claude, DeepSeek) ---
+// (Keine Änderungen hier notwendig, bleiben global)
 async function callOpenAI(prompt, apiKey) {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -304,7 +303,7 @@ async function validateClaudeKey(apiKey) {
             body: JSON.stringify({ model: 'claude-3-haiku-20240307', max_tokens: 1, messages: [{ role: 'user', content: '.' }] })
         });
         if (response.status === 401 || response.status === 403) return false;
-        if (response.status === 429) return true; // Rate limit implies valid key
+        if (response.status === 429) return true;
         return response.ok;
      } catch (error) { console.error('Claude Validierungs-Netzwerkfehler:', error); throw error; }
 }
@@ -395,8 +394,7 @@ function collectAnalysisData() {
         if (darlehen.length > 0 && (!darlehenSumme || darlehenSumme <= 0)) errors.push("Darlehenssumme ist 0 (Finanzierung-Tab)");
         if (darlehen.length > 0 && (!rateSumme || rateSumme <= 0)) errors.push("Monatliche Rate ist 0 (Finanzierung-Tab)");
         if (plz === 'N/A' || ort === 'N/A' || bundesland === 'N/A' || bundesland === "") errors.push("Standort (PLZ, Ort, Bundesland im Objekt-Tab)");
-        // Einkommen nur prüfen, wenn es für Analyse benötigt wird? Nein, jetzt immer da es eingegeben wird.
-        if (!haushaltsnettoeinkommen || haushaltsnettoeinkommen <= 0) errors.push("Monatl. Haushaltsnettoeinkommen (Finanzierung-Tab)");
+        if (!haushaltsnettoeinkommen || haushaltsnettoeinkommen <= 0) errors.push("Monatl. Haushaltsnettoeinkommen (Finanzierung-Tab)"); // Hinweis auf Tab geändert
 
         if (errors.length > 0) {
             const errorMsg = `Fehlende oder ungültige Kerndaten: ${errors.join(', ')}.`;
