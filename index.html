@@ -180,7 +180,7 @@
                 <div class="p-4 bg-blue-50 border border-blue-200 rounded">
                     <h3 class="font-semibold mb-2 text-blue-800"><i class="fas fa-info-circle mr-1"></i>Anleitung</h3>
                     <ol class="list-decimal pl-5 text-sm text-blue-700 space-y-1">
-                        <li>Erfassen Sie Ihre Objektdaten im Tab <strong class="font-semibold">Objekt</strong>.</li>
+                        <li>Erfassen Sie Ihre Objektdaten im Tab <strong class="font-semibold">Objekt</strong>. Nutzen Sie den <strong class="font-semibold">Lagekategorie ermitteln</strong> Button (API nötig).</li>
                         <li>Geben Sie die Kaufnebenkosten und weitere Kosten im Tab <strong class="font-semibold">Kosten</strong> an.</li>
                         <li>Konfigurieren Sie Ihre Finanzierung im Tab <strong class="font-semibold">Finanzierung</strong>.</li>
                         <li>Lassen Sie Ihre Baufinanzierung im Tab <strong class="font-semibold">Analyse</strong> prüfen und optimieren (API-Schlüssel erforderlich).</li>
@@ -272,12 +272,19 @@
 
                         <div>
                             <label class="block text-sm font-medium mb-1 text-gray-600" for="lage">Lagekategorie</label>
-                            <select id="lage" class="w-full p-2 border rounded shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                                <option value="Sehr gut">Sehr gute Lage (A+)</option>
-                                <option value="Gut" selected>Gute Lage (A)</option>
-                                <option value="Mittel">Mittlere Lage (B)</option>
-                                <option value="Einfach">Einfache Lage (C)</option>
-                            </select>
+                            <div class="flex items-start space-x-2">
+                                <select id="lage" class="flex-grow p-2 border rounded shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="Sehr gut">Sehr gute Lage (A+)</option>
+                                    <option value="Gut" selected>Gute Lage (A)</option>
+                                    <option value="Mittel">Mittlere Lage (B)</option>
+                                    <option value="Einfach">Einfache Lage (C)</option>
+                                </select>
+                                <!-- Neuer Button, initial deaktiviert -->
+                                <button id="ermittle-lagekategorie-btn" class="px-3 py-2 bg-indigo-600 text-white rounded shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed" disabled title="API-Schlüssel benötigt">
+                                    <i class="fas fa-map-marker-alt mr-1"></i> Ermitteln
+                                </button>
+                            </div>
+                            <div id="lage-status" class="text-xs text-gray-500 mt-1 h-4"></div> <!-- Platzhalter für Statusmeldungen -->
                         </div>
                     </div>
                 </fieldset>
@@ -713,31 +720,31 @@
                      <!-- Button wird dynamisch durch JS hinzugefügt/angepasst -->
                 </div>
 
-                <!-- Analyse-Optionen -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 opacity-50 cursor-not-allowed" id="analyse-optionen">
-                    <!-- Styling/Aktivierung wird durch JS gesteuert -->
-                    <div class="border rounded-lg p-4 hover:shadow-md transition duration-200 bg-gray-100" id="marktdaten-analyse">
+                <!-- Analyse-Optionen - KORRIGIERT: Keine globalen disabling classes mehr -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" id="analyse-optionen">
+                    <!-- KORRIGIERT: Disabling classes jetzt HIER (initial) -->
+                    <div class="border rounded-lg p-4 transition duration-200 bg-gray-100 opacity-50 cursor-not-allowed" id="marktdaten-analyse">
                         <div class="flex items-center mb-2">
                             <i class="fas fa-chart-bar fa-lg mr-3 text-green-500"></i>
                             <span class="font-semibold text-gray-700">Marktdatenanalyse</span>
                         </div>
                         <p class="text-sm text-gray-600">Kaufpreis und Konditionen im Marktvergleich.</p>
                     </div>
-                     <div class="border rounded-lg p-4 hover:shadow-md transition duration-200 bg-gray-100" id="belastungs-analyse">
+                     <div class="border rounded-lg p-4 transition duration-200 bg-gray-100 opacity-50 cursor-not-allowed" id="belastungs-analyse">
                         <div class="flex items-center mb-2">
                             <i class="fas fa-balance-scale-right fa-lg mr-3 text-blue-500"></i>
                             <span class="font-semibold text-gray-700">Belastbarkeitsanalyse</span>
                         </div>
                         <p class="text-sm text-gray-600">Prüfung der monatlichen Rate zur finanziellen Situation.</p>
                     </div>
-                    <div class="border rounded-lg p-4 hover:shadow-md transition duration-200 bg-gray-100" id="optimierungs-analyse">
+                    <div class="border rounded-lg p-4 transition duration-200 bg-gray-100 opacity-50 cursor-not-allowed" id="optimierungs-analyse">
                         <div class="flex items-center mb-2">
                              <i class="fas fa-magic fa-lg mr-3 text-purple-500"></i>
                             <span class="font-semibold text-gray-700">Optimierungsvorschläge</span>
                         </div>
                         <p class="text-sm text-gray-600">KI-basierte Empfehlungen zur Verbesserung.</p>
                     </div>
-                    <div class="border rounded-lg p-4 hover:shadow-md transition duration-200 bg-gray-100" id="vollstaendige-analyse">
+                    <div class="border rounded-lg p-4 transition duration-200 bg-gray-100 opacity-50 cursor-not-allowed" id="vollstaendige-analyse">
                         <div class="flex items-center mb-2">
                              <i class="fas fa-search-dollar fa-lg mr-3 text-red-500"></i>
                             <span class="font-semibold text-gray-700">Vollständige Analyse</span>
